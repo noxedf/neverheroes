@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+<defs>
+<linearGradient id="nhg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff2c4"/><stop offset=".45" stop-color="#e0b95a"/><stop offset="1" stop-color="#8a6a22"/></linearGradient>
+<radialGradient id="nhr" cx=".5" cy=".42" r=".6"><stop offset="0" stop-color="#ff7f88"/><stop offset=".55" stop-color="#d9343f"/><stop offset="1" stop-color="#5e0a12"/></radialGradient>
+<radialGradient id="nhb" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#2e0e13"/><stop offset="1" stop-color="#0e0e10"/></radialGradient>
+</defs>
+<circle cx="100" cy="100" r="96" fill="url(#nhb)"/>
+<circle cx="100" cy="100" r="96" fill="none" stroke="url(#nhg)" stroke-width="3"/>
+<circle cx="100" cy="100" r="86" fill="none" stroke="#c9a24b" stroke-width="1" stroke-dasharray="2 6" opacity=".8"/>
+<g fill="#d9343f"><path d="M100 4l7 14h-14z"/><path d="M196 100l-14 7v-14z"/><path d="M100 196l-7-14h14z"/><path d="M4 100l14-7v14z"/></g>
+<rect x="52" y="52" width="96" height="96" transform="rotate(45 100 100)" fill="none" stroke="url(#nhg)" stroke-width="2.5"/>
+<rect x="64" y="64" width="72" height="72" transform="rotate(45 100 100)" fill="none" stroke="#a3151f" stroke-width="1.5"/>
+<path d="M46 100Q100 56 154 100Q100 144 46 100Z" fill="#0e0e10" stroke="url(#nhg)" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="100" cy="100" r="23" fill="url(#nhr)"/>
+<path d="M100 84l9 16-9 16-9-16z" fill="#0e0e10"/>
+<circle cx="92" cy="92" r="3.2" fill="#fff" opacity=".7"/>
+</svg>

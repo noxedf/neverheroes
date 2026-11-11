@@ -222,3 +222,27 @@ h2{text-shadow:0 0 26px rgba(201,162,75,.28)}
 .top:hover{background:var(--crimson)}
 @media (max-width:640px){.hero{padding-bottom:5.2rem}}
 @media (prefers-reduced-motion:reduce){.rv{opacity:1!important;translate:none!important;transition:none!important}.hero h1{animation:none}.cue i{animation:none;opacity:1}}
+
+/* ===== v4: emblema, brilho e acabamento ===== */
+.hero{padding:4.5rem 1rem 5rem}
+.emb{position:relative;width:min(68vw,300px);aspect-ratio:1;margin:0 auto 1.8rem;z-index:1}
+.emb::before{content:"";position:absolute;inset:-14%;border-radius:50%;background:radial-gradient(circle,rgba(163,21,31,.55),rgba(163,21,31,.12) 55%,transparent 70%)}
+.emb .sigil{position:absolute;left:50%;top:50%;width:230%;max-width:none;translate:-50% -50%;opacity:.4;animation:spin 180s linear infinite}
+.art{position:relative;display:block;width:100%;height:100%;mix-blend-mode:screen;animation:float 7s ease-in-out infinite}
+@keyframes float{50%{translate:0 -9px}}
+h2,h3{text-wrap:balance}
+.lead,.note,.card p,.big p{text-wrap:pretty}
+.pc{overflow:hidden}
+.pc>div{position:relative}
+.wm{position:absolute;right:-34px;bottom:-38px;width:200px;height:200px;stroke:var(--c);stroke-width:1.1;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.08;pointer-events:none}
+.sd{background:radial-gradient(ellipse at 50% 0,rgba(163,21,31,.4),transparent 70%),radial-gradient(ellipse at 50% 100%,rgba(201,162,75,.1),transparent 60%),linear-gradient(180deg,var(--graphite),var(--coal))}
+.big.div,.big.cor{backdrop-filter:blur(2px)}
+nav{box-shadow:0 8px 28px rgba(0,0,0,.55),0 1px 0 rgba(201,162,75,.25)}
+@media (max-width:640px){.hero{padding:3.2rem 1rem 3.5rem}.emb{width:min(66vw,250px);margin-bottom:1.4rem}}
+@media (prefers-reduced-motion:reduce){.art{animation:none}.emb .sigil{animation:none}}
+
+/* ===== v5: ícone próprio ===== */
+.emb{width:min(58vw,230px)}
+.emb::before{inset:-22%}
+.art{mix-blend-mode:normal;filter:drop-shadow(0 0 20px rgba(217,52,63,.5))}
+@media (max-width:640px){.emb{width:min(54vw,190px)}}
