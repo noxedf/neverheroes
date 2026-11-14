@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fichas | Never Heroes</title>
+<meta name="description" content="Fichas dos jogadores de Never Heroes.">
+<meta name="theme-color" content="#0a0a1c">
+<link rel="icon" type="image/svg+xml" href="images/icon.svg">
+<link rel="icon" type="image/png" sizes="512x512" href="images/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/ficha.css">
+</head>
+<body>
+
+<header class="topo">
+  <a class="logo" href="index.html">Never <span>Heroes</span></a>
+  <div class="user" id="user" hidden>
+    <span id="userNome"></span>
+    <button type="button" class="btn mini" id="btnSair">Sair</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- aviso: Firebase não configurado -->
+  <section class="tela" id="telaConfig" hidden>
+    <div class="painel">
+      <h2>Firebase não configurado</h2>
+      <p>Abra <code>js/firebase-config.js</code> e cole as chaves do seu projeto Firebase. O passo a passo está no <code>README.md</code>.</p>
+    </div>
+  </section>
+
+  <!-- login -->
+  <section class="tela" id="telaLogin" hidden>
+    <div class="painel centro">
+      <h2>Entrar</h2>
+      <p>Entre com sua conta Google para criar e editar as fichas dos seus personagens.</p>
+      <button type="button" class="btn" id="btnLogin">Entrar com Google</button>
+      <p class="erro" id="loginErro" role="alert"></p>
+    </div>
+  </section>
+
+  <!-- lista de fichas -->
+  <section class="tela" id="telaLista" hidden>
+    <div class="lista-topo">
+      <h2 id="listaTitulo">Minhas fichas</h2>
+      <div class="acoes">
+        <button type="button" class="btn mini ghost" id="btnTodas" hidden>Ver todas (Mestre)</button>
+        <button type="button" class="btn" id="btnNova">+ Nova ficha</button>
+      </div>
+    </div>
+    <div class="cards" id="cards"></div>
+    <p class="vazio" id="vazio" hidden>Nenhuma ficha ainda. Crie a primeira.</p>
+  </section>
+
+  <!-- a ficha -->
+  <section class="tela" id="telaFicha" hidden>
+    <div class="barra">
+      <button type="button" class="btn mini ghost" id="btnVoltar">← Fichas</button>
+      <span class="salvo" id="salvo" aria-live="polite">Salvo</span>
+      <button type="button" class="btn mini perigo" id="btnExcluir">Excluir</button>
+    </div>
+    <p class="dono" id="dono" hidden></p>
+
+    <div class="ficha">
+      <div class="ficha-logo">Never <span>Heroes</span></div>
+
+      <!-- INFORMAÇÕES -->
+      <div class="bloco">
+        <div class="aba"><i>✦</i>Informações</div>
+        <div class="corpo info">
+          <div class="col">
+            <label class="l"><span>Nome</span><input type="text" data-k="info.nome" maxlength="60" placeholder="N/A"></label>
+            <label class="l"><span>Idade</span><input type="text" data-k="info.idade" maxlength="20" placeholder="N/A"></label>
+            <label class="l"><span>Altura</span><input type="text" data-k="info.altura" maxlength="20" placeholder="N/A"></label>
+          </div>
+          <div class="col">
+            <label class="l"><span><i class="ic">★</i>Fama</span><input type="number" data-k="info.fama" placeholder="0"></label>
+            <div class="l"><span><i class="ic rosa">♥</i>Hp</span>
+              <input type="number" data-k="info.hp" placeholder="2d20">
+              <button type="button" class="dado" data-roll="2d20" data-alvo="info.hp" title="Rolar 2d20">🎲</button></div>
+            <label class="l"><span><i class="ic verde">$</i>Money</span><input type="number" data-k="info.money" placeholder="00"></label>
+            <label class="l"><span><i class="ic rosa">🧠</i>Sanidade</span><input type="number" data-k="info.sanidade" min="0" max="100" placeholder="100"><b class="suf">%</b></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- DOM -->
+      <div class="bloco">
+        <div class="aba"><i>◎</i>Dom</div>
+        <div class="corpo dom">
+          <label class="l"><span>Dom</span><input type="text" data-k="dom.nome" maxlength="80" placeholder="N/A"></label>
+          <label class="l"><span>Categorias</span><input type="text" data-k="dom.categorias" maxlength="120" placeholder="N/A"></label>
+          <div class="l edom"><span><i class="ic azul">🌀</i>EDOM</span>
+            <input type="number" data-k="dom.edom" min="0" aria-label="EDOM atual">
+            <b class="suf">/</b>
+            <input type="number" data-k="dom.edomMax" min="0" aria-label="EDOM máxima">
+          </div>
+          <div class="barra-edom" aria-hidden="true"><i id="barEdom"></i></div>
+        </div>
+      </div>
+
+      <!-- STATUS -->
+      <div class="bloco">
+        <div class="aba"><i>📈</i>Status</div>
+        <div class="corpo status" id="status"></div>
+      </div>
+
+      <!-- MOCHILA -->
+      <div class="bloco">
+        <div class="aba"><i>🎒</i>Mochila</div>
+        <em class="espaco" id="espaco">Espaço 00/30</em>
+        <div class="corpo"><div class="mochila" id="mochila"></div></div>
+      </div>
+
+      <!-- HABILIDADES -->
+      <div class="bloco">
+        <div class="aba"><i>✦</i>Habilidades</div>
+        <div class="corpo">
+          <div class="lista-itens" id="habilidades"></div>
+          <button type="button" class="btn mini ghost" data-add="habilidades">+ Habilidade</button>
+        </div>
+      </div>
+
+      <!-- PASSIVAS -->
+      <div class="bloco">
+        <div class="aba"><i>🔒</i>Habilidades passivas</div>
+        <div class="corpo">
+          <div class="lista-itens" id="passivas"></div>
+          <button type="button" class="btn mini ghost" data-add="passivas">+ Passiva</button>
+        </div>
+      </div>
+
+      <!-- APARÊNCIA -->
+      <div class="bloco">
+        <div class="aba"><i>👤</i>Aparência</div>
+        <div class="corpo"><textarea data-k="aparencia" rows="6" maxlength="3000" placeholder="Descreva a aparência do personagem..."></textarea></div>
+      </div>
+    </div>
+  </section>
+
+  <p class="carregando" id="carregando">Carregando…</p>
+</main>
+
+<script type="module" src="js/ficha.js"></script>
+</body>
+</html>
