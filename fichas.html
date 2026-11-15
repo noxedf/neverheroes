@@ -47,7 +47,7 @@ function card(f) {
       el("div", {}, el("h3", { text: f.nome || "Sem nome" }), el("div", { class: "fc-meta", text: dom }))),
     el("div", { class: "fc-foot" },
       el("span", { text: "Atualizada em " + (fmtData(f.updatedAt) || "—") }),
-      el("div", { class: "fc-btns" }, el("a", { class: "btn mini", href: "ficha.html?id=" + encodeURIComponent(f.id), text: "✏️ Abrir" }))));
+      el("div", { class: "fc-btns" }, el("a", { class: "btn mini sec", href: "ficha-view.html?id=" + encodeURIComponent(f.id), text: "👁️ Ver" }), el("a", { class: "btn mini", href: "ficha-editor.html?id=" + encodeURIComponent(f.id), text: "✏️ Editar" }))));
 }
 
 async function carregar() {
@@ -81,11 +81,11 @@ document.getElementById("btnNova").addEventListener("click", async (ev) => {
       info: { nome: "", idade: "", altura: "", fama: 0, hp: "", money: 0, sanidade: 100 },
       dom: { nome: "", categorias: "", edom: 100, edomMax: 100 },
       status: { sorte: "", vontade: "", foco: "", destreza: "", forca: "", agilidade: "", intelecto: "", constituicao: "", carisma: "" },
-      mochila: Array(30).fill(""),
+      inventario: [],
       habilidades: [], passivas: [], aparencia: "", retrato: "",
       ownerUid: user.uid, ownerName: profile.name || "", updatedAt: serverTimestamp()
     });
-    location.href = "ficha.html?id=" + encodeURIComponent(ref.id);
+    location.href = "ficha-editor.html?id=" + encodeURIComponent(ref.id);
   } catch (e) {
     document.getElementById("erro").replaceChildren(el("div", { class: "msg", text: "Não foi possível criar a ficha (" + (e.code || e.message) + ")." }));
     b.disabled = false;

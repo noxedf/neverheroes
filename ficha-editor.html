@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Editar ficha | Never Heroes</title>
+<meta name="theme-color" content="#0e0e10">
+<link rel="icon" type="image/svg+xml" href="images/icon.svg">
+<link rel="icon" type="image/png" sizes="512x512" href="images/icon.png">
+<link rel="apple-touch-icon" href="images/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/topbar.css">
+</head>
+<body>
+<header id="topbar"></header>
+
+<main class="shell">
+  <p class="center" id="carregando">Carregando ficha…</p>
+
+  <form id="tela" hidden autocomplete="off">
+    <div class="page-head">
+      <div class="eyebrow" id="dono">Editor de ficha</div>
+      <h1>Editar ficha</h1>
+      <p>Preencha os campos e clique em <strong>Salvar ficha</strong> no fim da página.</p>
+    </div>
+
+    <!-- INFORMAÇÕES -->
+    <div class="panel">
+      <h3 class="panel-title">Informações</h3>
+      <div class="retrato">
+        <div id="retratoBox"></div>
+        <div class="ctl">
+          <span class="lbl">Retrato do personagem</span>
+          <input type="file" id="inRetrato" accept="image/*" aria-label="Retrato do personagem">
+          <div><button type="button" class="btn mini sec" id="btnRetratoRm">Remover retrato</button></div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label for="f-nome">Nome</label><input id="f-nome" type="text" data-k="info.nome" maxlength="60" placeholder="N/A"></div>
+        <div class="field"><label for="f-idade">Idade</label><input id="f-idade" type="text" data-k="info.idade" maxlength="20" placeholder="N/A"></div>
+        <div class="field"><label for="f-altura">Altura</label><input id="f-altura" type="text" data-k="info.altura" maxlength="20" placeholder="N/A"></div>
+        <div class="field"><label for="f-fama">★ Fama</label><input id="f-fama" type="number" data-k="info.fama" placeholder="0"></div>
+        <div class="field"><label for="f-hp">♥ Hp</label>
+          <div class="with-dice"><input id="f-hp" type="number" data-k="info.hp" placeholder="2d20"><button type="button" class="dado" data-roll="2d20" data-alvo="info.hp" title="Rolar 2d20">🎲</button></div></div>
+        <div class="field"><label for="f-money">$ Money</label><input id="f-money" type="number" data-k="info.money" placeholder="00"></div>
+        <div class="field"><label for="f-san">🧠 Sanidade (%)</label><input id="f-san" type="number" data-k="info.sanidade" min="0" max="100" placeholder="100"></div>
+      </div>
+    </div>
+
+    <!-- DOM -->
+    <div class="panel">
+      <h3 class="panel-title">Dom</h3>
+      <div class="grid2">
+        <div class="field"><label for="f-dom">Dom</label><input id="f-dom" type="text" data-k="dom.nome" maxlength="80" placeholder="N/A"></div>
+        <div class="field"><label for="f-cat">Categorias</label><input id="f-cat" type="text" data-k="dom.categorias" maxlength="120" placeholder="N/A"></div>
+        <div class="field"><label for="f-edom">🌀 EDOM atual</label><input id="f-edom" type="number" data-k="dom.edom" min="0"></div>
+        <div class="field"><label for="f-edommax">🌀 EDOM máxima</label><input id="f-edommax" type="number" data-k="dom.edomMax" min="0"></div>
+      </div>
+      <div class="res-bar edom"><span id="barEdom"></span></div>
+    </div>
+
+    <!-- STATUS -->
+    <div class="panel">
+      <h3 class="panel-title">Status</h3>
+      <p class="hint">Role 1d20 em cada status (🎲) ou digite o valor.</p>
+      <div class="grid3" id="status"></div>
+    </div>
+
+    <!-- INVENTÁRIO -->
+    <div class="panel">
+      <h3 class="panel-title">Mochila</h3>
+      <p class="hint">Cada item ocupa espaço (por unidade) e a quantidade multiplica esse espaço. A mochila comporta 30; uma Mochila equipada aumenta o limite.</p>
+      <div id="invResumo" class="weight-summary"></div>
+      <div id="inventario"></div>
+    </div>
+
+    <!-- HABILIDADES -->
+    <div class="panel">
+      <h3 class="panel-title">Habilidades</h3>
+      <div class="lista-itens" id="habilidades"></div>
+      <button type="button" class="btn mini sec" data-add="habilidades">+ Habilidade</button>
+    </div>
+
+    <!-- PASSIVAS -->
+    <div class="panel">
+      <h3 class="panel-title">Habilidades passivas</h3>
+      <div class="lista-itens" id="passivas"></div>
+      <button type="button" class="btn mini sec" data-add="passivas">+ Passiva</button>
+    </div>
+
+    <!-- APARÊNCIA -->
+    <div class="panel">
+      <h3 class="panel-title">Aparência</h3>
+      <textarea data-k="aparencia" rows="6" maxlength="3000" aria-label="Aparência" placeholder="Descreva a aparência do personagem..."></textarea>
+    </div>
+
+    <div id="erro"></div>
+    <div class="save-bar">
+      <button type="submit" class="btn" id="btnSalvar">💾 Salvar ficha</button>
+      <a class="btn sec" id="btnCancelar" href="fichas.html">Cancelar</a>
+      <span class="salvo" id="salvo" aria-live="polite"></span>
+      <button type="button" class="btn danger mini" id="btnExcluir">Excluir ficha</button>
+    </div>
+  </form>
+</main>
+
+<script type="module" src="js/ficha-editor.js"></script>
+</body>
+</html>
