@@ -24,8 +24,10 @@
 <meta name="twitter:description" content="Um RPG de dons, EDOM e semi-deuses.">
 <meta name="twitter:image" content="https://noxedf.github.io/neverheroes/images/banner.png">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/topbar.css">
 </head>
 <body>
+<header id="topbar"></header>
 <div class="prog" id="prog"></div>
 <header class="hero">
   <div class="emb"><svg class="sigil" viewBox="0 0 400 400" fill="none" aria-hidden="true">
@@ -180,5 +182,10 @@
 
 <a class="top" id="top" href="#" aria-label="Voltar ao topo"></a>
 <script src="js/main.js"></script>
+<script type="module">
+import { buildTopbar } from "./js/topbar.js";
+buildTopbar({ home: "index.html", subtitulo: "Conceitos", ativa: "conceitos", flow: true, entrar: "index.html",
+  grupos: [{ rotulo: "Mesa", links: [{ id: "fichas", texto: "Fichas", href: "index.html" }] }, { rotulo: "Mundo", links: [{ id: "conceitos", texto: "Conceitos", href: "conceitos.html" }] }] });
+</script>
 </body>
 </html>

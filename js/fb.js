@@ -3,6 +3,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/fireba
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
+import { buildTopbar } from "./topbar.js";
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
@@ -67,21 +68,14 @@ export function avatarNode(profile, cls) {
 }
 
 export function renderTopbar(profile, ativa, subtitulo) {
-  const bar = document.getElementById("topbar");
-  bar.className = "topbar";
-  bar.textContent = "";
-  const brand = el("a", { class: "brand", href: home(profile) },
-    el("img", { src: "images/icon.svg", alt: "" }),
-    el("div", {}, el("div", { class: "brand-title", text: "NEVER HEROES" }), el("div", { class: "brand-sub", text: subtitulo || "" })));
-  const links = [["fichas", "Fichas", "fichas.html"]];
-  if (profile.role === "master") links.push(["master", "Painel do Mestre", "master.html"]);
-  links.push(["perfil", "Perfil", "perfil.html"]);
-  links.push(["conceitos", "Conceitos", "conceitos.html"]);
-  const nav = el("nav", { class: "topnav" });
-  links.forEach((l) => nav.append(el("a", { href: l[2], class: l[0] === ativa ? "on" : "", text: l[1] })));
-  nav.append(el("button", { class: "link", type: "button", text: "Sair", onclick: async () => { await signOut(auth); location.replace("index.html"); } }));
-  nav.append(el("a", { href: "perfil.html", "aria-label": "Perfil" }, avatarNode(profile, "avatar-mini")));
-  bar.append(brand, nav);
+  const grupos = [{ rotulo: "Mesa", links: [{ id: "fichas", texto: "Fichas", href: "fichas.html" }] }];
+  if (profile.role === "master") grupos[0].links.push({ id: "master", texto: "Painel do Mestre", href: "master.html" });
+  grupos.push({ rotulo: "Mundo", links: [{ id: "conceitos", texto: "Conceitos", href: "conceitos.html" }] });
+  buildTopbar({
+    home: home(profile), subtitulo, ativa, grupos,
+    user: { nome: profile.name, avatar: profile.avatarImage },
+    onSair: async () => { await signOut(auth); location.replace("index.html"); }
+  });
 }
 
 // Recorta ao centro e reduz a imagem (fica pequena o bastante para o Firestore).
