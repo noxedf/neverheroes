@@ -6,18 +6,27 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // O Mestre é quem tem um documento em /admins/{uid} (criado à mão no console).
+    // Mestre = quem tem role == 'master' no próprio documento em /users.
+    // A role é trocada à mão no console do Firebase (ninguém consegue se promover pelo site).
     function mestre() {
-      return logado() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      return logado()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'master';
     }
 
-    match /admins/{uid} {
-      allow read: if logado() && request.auth.uid == uid;
-      allow write: if false;
+    // Perfis de usuário (jogador ou mestre)
+    match /users/{userId} {
+      allow read: if logado() && (request.auth.uid == userId || mestre());
+      // toda conta nova nasce como jogador
+      allow create: if logado() && request.auth.uid == userId
+                    && request.resource.data.role == 'player';
+      // ninguém altera o próprio 'role'
+      allow update: if logado() && request.auth.uid == userId
+                    && request.resource.data.role == resource.data.role;
+      allow delete: if logado() && request.auth.uid == userId;
     }
 
-    match /fichas/{id} {
-      // cada jogador só enxerga e edita as próprias fichas; o Mestre vê e edita todas
+    // Fichas: cada jogador só enxerga e edita as próprias; o Mestre vê e edita todas.
+    match /fichas/{fichaId} {
       allow read: if logado() && (resource.data.ownerUid == request.auth.uid || mestre());
       allow create: if logado() && request.resource.data.ownerUid == request.auth.uid;
       allow update: if logado()
