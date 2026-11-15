@@ -11,9 +11,8 @@ js/main.js
 images/banner.png   (imagem de pré-visualização do link, 1200x630)
 images/icon.svg     (ícone do site, vetorial)
 images/icon.png     (ícone do site, 512x512)
-ficha.html          (fichas dos jogadores)
-css/ficha.css
-js/ficha.js
+login.html, fichas.html, ficha.html, perfil.html, master.html  (contas e fichas)
+css/app.css, js/fb.js, js/ficha.js
 js/firebase-config.js  (suas chaves do Firebase)
 firestore.rules     (regras de segurança do banco)
 ```
@@ -41,26 +40,37 @@ Se o Discord mostrar uma imagem antiga depois de uma troca, é cache: envie o li
 
 ## Fichas dos jogadores (Firebase)
 
-A página `ficha.html` guarda as fichas no **Firestore**, com login pelo **Google**. Cada jogador vê e edita só as próprias fichas; o Mestre vê e edita todas. O site continua sem build: o Firebase é carregado direto do CDN.
+O site tem uma área de contas e fichas, no mesmo esquema do Heartsoul, guardada no **Firestore**:
+
+| Página | O que faz |
+| --- | --- |
+| `login.html` | Entrar, criar conta, esqueci a senha, entrar com Google e login de Mestre |
+| `fichas.html` | Minhas fichas: lista e cria personagens |
+| `ficha.html?id=...` | A ficha (Informações, Dom, Status, Mochila, Habilidades, Passivas, Aparência) |
+| `perfil.html` | Nome, foto de perfil, sair e excluir conta |
+| `master.html` | Painel do Mestre: todas as fichas, agrupadas por jogador, com busca |
+
+Arquivos: `css/app.css` (tema), `js/fb.js` (Firebase, topbar, login obrigatório), `js/ficha.js`, `js/firebase-config.js` (suas chaves) e `firestore.rules`.
 
 ### Configurar (uma vez)
 
-1. Em https://console.firebase.google.com, crie um projeto (o plano gratuito basta).
-2. **Build > Authentication > Get started > Sign-in method**: ative **Google**.
-3. Em **Authentication > Settings > Authorized domains**, adicione `noxedf.github.io` (e `localhost`, se for testar no seu computador).
-4. **Build > Firestore Database > Create database** (modo produção, escolha uma região).
-5. Na aba **Rules** do Firestore, cole o conteúdo de `firestore.rules` e clique em **Publish**.
-6. **Configurações do projeto > Seus apps > Web (`</>`)**: registre um app e copie o objeto `firebaseConfig` para `js/firebase-config.js`. Essas chaves não são secretas; quem protege os dados são as regras.
+1. No Firebase, **Build > Authentication > Sign-in method**: ative **E-mail/senha** e, se quiser o botão do Google, **Google**.
+2. **Authentication > Settings > Authorized domains**: adicione `noxedf.github.io`.
+3. **Build > Firestore Database > Create database** (modo produção).
+4. Na aba **Rules** do Firestore, cole o conteúdo de `firestore.rules` e clique em **Publish**.
+5. Cole o `firebaseConfig` do seu app web em `js/firebase-config.js`.
 
 ### Virar Mestre
 
-1. Entre uma vez em `ficha.html` com a sua conta.
-2. No Firestore, crie a coleção `admins` e um documento cujo **ID seja o seu UID** (Authentication > Users > coluna "User UID"). O conteúdo pode ser qualquer campo, por exemplo `mestre: true`.
-3. Recarregue a página: aparece o botão **Ver todas (Mestre)**.
+1. Crie uma conta normal em `login.html` (aba **Sou Jogador > Criar conta**).
+2. No Firestore, abra a coleção `users`, ache o documento da sua conta e mude o campo `role` de `player` para `master`.
+3. Entre pela aba **Sou Mestre**. O Painel do Mestre mostra todas as fichas.
+
+A mesma edição promove qualquer outra pessoa. Quem já tinha a coleção `admins` da versão anterior pode ignorá-la: ela não é mais usada.
 
 ### Como funciona
 
-- Os dados ficam na coleção `fichas`: `info`, `dom`, `status`, `mochila` (30 espaços), `habilidades`, `passivas` e `aparencia`.
-- Salva sozinho, cerca de 1 segundo depois da última alteração.
+- Cada jogador vê e edita só as próprias fichas. O Mestre vê e edita todas (isso é garantido pelas regras do Firestore, não só escondido na tela).
+- A ficha salva sozinha cerca de 1 segundo depois da última alteração.
 - O botão 🎲 rola 1d20 nos status e 2d20 no HP.
-- Cada ficha tem um link próprio (`ficha.html#ID`).
+- Fotos (perfil e retrato) são redimensionadas no navegador e guardadas no próprio documento.

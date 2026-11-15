@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meu Perfil | Never Heroes</title>
+<meta name="theme-color" content="#0e0e10">
+<link rel="icon" type="image/svg+xml" href="images/icon.svg">
+<link rel="icon" type="image/png" sizes="512x512" href="images/icon.png">
+<link rel="apple-touch-icon" href="images/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header id="topbar"></header>
+
+<main class="shell">
+  <div class="page-head">
+    <div class="eyebrow">Sua conta</div>
+    <h1>Meu Perfil</h1>
+    <p>Sua foto e seu nome aparecem para o Mestre quando ele consulta suas fichas.</p>
+  </div>
+
+  <div class="panel">
+    <div class="profile-head">
+      <div id="avatarBox"></div>
+      <div class="profile-id">
+        <h2 id="pNome">—</h2>
+        <div class="l" id="pEmail">—</div>
+        <span class="badge" id="pPapel"></span>
+      </div>
+    </div>
+
+    <h3 class="panel-title">Nome</h3>
+    <div class="field"><input type="text" id="inNome" maxlength="60" aria-label="Nome"></div>
+    <div class="row-btns" style="margin:0 0 1.6rem"><button type="button" class="btn" id="btnNome">Salvar nome</button></div>
+
+    <h3 class="panel-title">Foto de perfil</h3>
+    <div class="field"><input type="file" id="inFoto" accept="image/*" aria-label="Foto de perfil"></div>
+    <p class="hint" id="fotoMsg">Envie uma imagem quadrada de preferência. Ela é redimensionada antes de salvar.</p>
+    <div id="erro"></div>
+    <div class="row-btns">
+      <button type="button" class="btn" id="btnFoto">Salvar foto</button>
+      <button type="button" class="btn sec" id="btnRemover">Remover foto</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3 class="panel-title">Gerenciar conta</h3>
+    <p class="hint">Sair encerra sua sessão neste dispositivo. Excluir a conta apaga seu perfil e TODAS as suas fichas, para sempre.</p>
+    <div class="row-btns">
+      <button type="button" class="btn sec" id="btnSair">Sair da conta</button>
+      <button type="button" class="btn danger" id="btnExcluir">Excluir conta</button>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+import { auth, db, guard, renderTopbar, avatarNode, resizeImage, el } from "./js/fb.js";
+import { doc, updateDoc, deleteDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { signOut, deleteUser } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+const { user, profile } = await guard();
+const $ = (id) => document.getElementById(id);
+let pendente = null;
+
+function pintarAvatar(img) {
+  $("avatarBox").replaceChildren(avatarNode({ avatarImage: img }, "profile-avatar"));
+}
+function mostrar(msg, ok) {
+  $("erro").replaceChildren(msg ? el("div", { class: "msg" + (ok ? " ok" : ""), text: msg }) : "");
+}
+function pintarTudo() {
+  renderTopbar(profile, "perfil", "Meu perfil");
+  $("pNome").textContent = profile.name || "—";
+  $("pEmail").textContent = profile.email || user.email || "—";
+  const m = profile.role === "master";
+  $("pPapel").textContent = m ? "Mestre" : "Jogador";
+  $("pPapel").className = "badge" + (m ? " m" : "");
+  $("inNome").value = profile.name || "";
+  pintarAvatar(profile.avatarImage || "");
+}
+pintarTudo();
+
+async function salvar(campos, ok) {
+  mostrar("");
+  const bs = [$("btnNome"), $("btnFoto"), $("btnRemover")];
+  bs.forEach((b) => (b.disabled = true));
+  try {
+    await updateDoc(doc(db, "users", user.uid), campos);
+    Object.assign(profile, campos);
+    pintarTudo();
+    mostrar(ok, true);
+  } catch (e) { mostrar("Erro ao salvar (" + (e.code || e.message) + ")."); }
+  bs.forEach((b) => (b.disabled = false));
+}
+
+$("btnNome").onclick = () => {
+  const n = $("inNome").value.trim();
+  if (!n) { mostrar("Digite um nome."); return; }
+  salvar({ name: n.slice(0, 60) }, "Nome salvo.");
+};
+$("inFoto").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  mostrar("");
+  try {
+    pendente = await resizeImage(f, 320);
+    pintarAvatar(pendente);
+    $("fotoMsg").textContent = "Clique em \"Salvar foto\" para confirmar.";
+  } catch (err) { mostrar(err.message); }
+});
+$("btnFoto").onclick = () => {
+  if (!pendente) { mostrar("Escolha uma imagem antes de salvar."); return; }
+  salvar({ avatarImage: pendente }, "Foto salva.").then(() => { pendente = null; $("inFoto").value = ""; });
+};
+$("btnRemover").onclick = () => { pendente = null; $("inFoto").value = ""; salvar({ avatarImage: "" }, "Foto removida."); };
+
+$("btnSair").onclick = async () => { await signOut(auth); location.replace("login.html"); };
+
+$("btnExcluir").onclick = async () => {
+  if (!confirm("Excluir a conta e TODAS as suas fichas para sempre?")) return;
+  if (!confirm("Tem certeza? Isso não pode ser desfeito.")) return;
+  mostrar("");
+  try {
+    const snap = await getDocs(query(collection(db, "fichas"), where("ownerUid", "==", user.uid)));
+    await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
+    await deleteDoc(doc(db, "users", user.uid));
+    await deleteUser(user);
+    location.replace("login.html");
+  } catch (e) {
+    if (e.code === "auth/requires-recent-login")
+      mostrar("Suas fichas e seu perfil foram apagados, mas por segurança o Firebase pede um login recente para encerrar a conta. Saia, entre de novo e clique em Excluir conta outra vez.");
+    else mostrar("Não foi possível excluir (" + (e.code || e.message) + ").");
+  }
+};
+</script>
+</body>
+</html>
