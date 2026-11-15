@@ -11,7 +11,7 @@ js/main.js
 images/banner.png   (imagem de pré-visualização do link, 1200x630)
 images/icon.svg     (ícone do site, vetorial)
 images/icon.png     (ícone do site, 512x512)
-login.html, fichas.html, ficha.html, perfil.html, master.html  (contas e fichas)
+index.html, conceitos.html, fichas.html, ficha.html, perfil.html, master.html  (contas e fichas)
 css/app.css, js/fb.js, js/ficha.js
 js/firebase-config.js  (suas chaves do Firebase)
 firestore.rules     (regras de segurança do banco)
@@ -44,7 +44,8 @@ O site tem uma área de contas e fichas, no mesmo esquema do Heartsoul, guardada
 
 | Página | O que faz |
 | --- | --- |
-| `login.html` | Entrar, criar conta, esqueci a senha, entrar com Google e login de Mestre |
+| `conceitos.html` | O conteúdo do RPG (Dom, EDOM, categorias, Semi-Deuses, regra de mesa) |
+| `index.html` | Página inicial: entrar, criar conta, esqueci a senha, entrar com Google e login de Mestre |
 | `fichas.html` | Minhas fichas: lista e cria personagens |
 | `ficha.html?id=...` | A ficha (Informações, Dom, Status, Mochila, Habilidades, Passivas, Aparência) |
 | `perfil.html` | Nome, foto de perfil, sair e excluir conta |
@@ -62,7 +63,7 @@ Arquivos: `css/app.css` (tema), `js/fb.js` (Firebase, topbar, login obrigatório
 
 ### Virar Mestre
 
-1. Crie uma conta normal em `login.html` (aba **Sou Jogador > Criar conta**).
+1. Crie uma conta normal em `index.html` (aba **Sou Jogador > Criar conta**).
 2. No Firestore, abra a coleção `users`, ache o documento da sua conta e mude o campo `role` de `player` para `master`.
 3. Entre pela aba **Sou Mestre**. O Painel do Mestre mostra todas as fichas.
 

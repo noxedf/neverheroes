@@ -117,7 +117,7 @@ $("btnFoto").onclick = () => {
 };
 $("btnRemover").onclick = () => { pendente = null; $("inFoto").value = ""; salvar({ avatarImage: "" }, "Foto removida."); };
 
-$("btnSair").onclick = async () => { await signOut(auth); location.replace("login.html"); };
+$("btnSair").onclick = async () => { await signOut(auth); location.replace("index.html"); };
 
 $("btnExcluir").onclick = async () => {
   if (!confirm("Excluir a conta e TODAS as suas fichas para sempre?")) return;
@@ -128,7 +128,7 @@ $("btnExcluir").onclick = async () => {
     await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
     await deleteDoc(doc(db, "users", user.uid));
     await deleteUser(user);
-    location.replace("login.html");
+    location.replace("index.html");
   } catch (e) {
     if (e.code === "auth/requires-recent-login")
       mostrar("Suas fichas e seu perfil foram apagados, mas por segurança o Firebase pede um login recente para encerrar a conta. Saia, entre de novo e clique em Excluir conta outra vez.");
