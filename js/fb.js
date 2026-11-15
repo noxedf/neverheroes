@@ -48,7 +48,7 @@ export function guard(role) {
     }, 9000);
     onAuthStateChanged(auth, async (u) => {
       clearTimeout(t);
-      if (!u) { location.replace("login.html"); return; }
+      if (!u) { location.replace("index.html"); return; }
       try {
         let profile = await getProfile(u.uid);
         if (!profile) profile = await createProfile(u);
@@ -76,9 +76,10 @@ export function renderTopbar(profile, ativa, subtitulo) {
   const links = [["fichas", "Fichas", "fichas.html"]];
   if (profile.role === "master") links.push(["master", "Painel do Mestre", "master.html"]);
   links.push(["perfil", "Perfil", "perfil.html"]);
+  links.push(["conceitos", "Conceitos", "conceitos.html"]);
   const nav = el("nav", { class: "topnav" });
   links.forEach((l) => nav.append(el("a", { href: l[2], class: l[0] === ativa ? "on" : "", text: l[1] })));
-  nav.append(el("button", { class: "link", type: "button", text: "Sair", onclick: async () => { await signOut(auth); location.replace("login.html"); } }));
+  nav.append(el("button", { class: "link", type: "button", text: "Sair", onclick: async () => { await signOut(auth); location.replace("index.html"); } }));
   nav.append(el("a", { href: "perfil.html", "aria-label": "Perfil" }, avatarNode(profile, "avatar-mini")));
   bar.append(brand, nav);
 }

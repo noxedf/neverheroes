@@ -246,3 +246,6 @@ nav{box-shadow:0 8px 28px rgba(0,0,0,.55),0 1px 0 rgba(201,162,75,.25)}
 .emb::before{inset:-22%}
 .art{mix-blend-mode:normal;filter:drop-shadow(0 0 20px rgba(217,52,63,.5))}
 @media (max-width:640px){.emb{width:min(54vw,190px)}}
+
+/* ===== conceitos ===== */
+.hero-sub{position:relative;z-index:1;margin:1.2rem 0 0;font-family:var(--head);font-size:.95rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gold)}
