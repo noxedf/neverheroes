@@ -11,8 +11,8 @@ js/main.js
 images/banner.png   (imagem de pré-visualização do link, 1200x630)
 images/icon.svg     (ícone do site, vetorial)
 images/icon.png     (ícone do site, 512x512)
-index.html, conceitos.html, fichas.html, ficha.html, perfil.html, master.html  (contas e fichas)
-css/app.css, js/fb.js, js/ficha.js
+index.html, conceitos.html, fichas.html, ficha-view.html, ficha-editor.html, perfil.html, master.html  (contas e fichas)
+css/app.css, css/topbar.css, js/fb.js, js/topbar.js, js/ficha-shared.js, js/ficha-view.js, js/ficha-editor.js
 js/firebase-config.js  (suas chaves do Firebase)
 firestore.rules     (regras de segurança do banco)
 ```
@@ -47,11 +47,12 @@ O site tem uma área de contas e fichas, no mesmo esquema do Heartsoul, guardada
 | `conceitos.html` | O conteúdo do RPG (Dom, EDOM, categorias, Semi-Deuses, regra de mesa) |
 | `index.html` | Página inicial: entrar, criar conta, esqueci a senha, entrar com Google e login de Mestre |
 | `fichas.html` | Minhas fichas: lista e cria personagens |
-| `ficha.html?id=...` | A ficha (Informações, Dom, Status, Mochila, Habilidades, Passivas, Aparência) |
+| `ficha-view.html?id=...` | A ficha só para leitura (resumo, status, mochila em cartões, habilidades, passivas, aparência). Consumíveis têm o botão "Usar 1" |
+| `ficha-editor.html?id=...` | O editor: Salvar e Cancelar no fim da página, avisa se houver alterações não salvas |
 | `perfil.html` | Nome, foto de perfil, sair e excluir conta |
 | `master.html` | Painel do Mestre: todas as fichas, agrupadas por jogador, com busca |
 
-Arquivos: `css/app.css` (tema), `js/fb.js` (Firebase, topbar, login obrigatório), `js/ficha.js`, `js/firebase-config.js` (suas chaves) e `firestore.rules`.
+Arquivos: `css/app.css` (tema), `js/fb.js` (Firebase, topbar, login obrigatório), `js/firebase-config.js` (suas chaves) e `firestore.rules`.
 
 ### Configurar (uma vez)
 
@@ -72,6 +73,9 @@ A mesma edição promove qualquer outra pessoa. Quem já tinha a coleção `admi
 ### Como funciona
 
 - Cada jogador vê e edita só as próprias fichas. O Mestre vê e edita todas (isso é garantido pelas regras do Firestore, não só escondido na tela).
-- A ficha salva sozinha cerca de 1 segundo depois da última alteração.
+- No editor, nada é gravado até clicar em **Salvar ficha**. Sair com alterações pendentes pede confirmação.
+- A mochila funciona como a do Heartsoul: cada item tem nome, espaço por unidade, quantidade, tipo (comum, consumível ou mochila), imagem e descrição. O limite é 30 de espaço; uma Mochila equipada soma o espaço extra dela. Fichas antigas (30 campos de texto) são convertidas em itens ao abrir.
+- A ficha mantém o visual de ficha do Never Heroes: logo, blocos com aba em seta, "Espaço 00/30" e, na mochila, o mesmo modelo do HeartSoul: resumo de espaço com medidor e itens com tipo, imagem e descrição.
+- Status: Sorte, Vontade, Foco, Destreza, Força, Agilidade, Intelecto, Constituição, Carisma e **Instintos**. Fichas antigas, sem Instintos, abrem normalmente com o campo vazio.
 - O botão 🎲 rola 1d20 nos status e 2d20 no HP.
 - Fotos (perfil e retrato) são redimensionadas no navegador e guardadas no próprio documento.

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Editar ficha | Never Heroes</title>
+<meta name="theme-color" content="#0e0e10">
+<link rel="icon" type="image/svg+xml" href="images/icon.svg">
+<link rel="icon" type="image/png" sizes="512x512" href="images/icon.png">
+<link rel="apple-touch-icon" href="images/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/topbar.css">
+</head>
+<body>
+<header id="topbar"></header>
+
+<main class="shell">
+  <p class="center" id="carregando">Carregando ficha…</p>
+
+  <form id="tela" hidden autocomplete="off">
+    <p class="dono" id="dono"></p>
+
+    <div class="ficha">
+      <div class="ficha-logo">NEVER HEROES</div>
+
+      <!-- INFORMAÇÕES -->
+      <section class="bloco">
+        <div class="aba"><i>✦</i>Informações</div>
+        <div class="corpo">
+          <div class="retrato">
+            <div id="retratoBox"></div>
+            <div class="ctl">
+              <span class="lbl">Retrato do personagem</span>
+              <input type="file" id="inRetrato" accept="image/*" aria-label="Retrato do personagem">
+              <div><button type="button" class="btn mini sec" id="btnRetratoRm">Remover retrato</button></div>
+            </div>
+          </div>
+          <div class="info">
+            <div>
+              <div class="l2"><span>Nome</span><input id="f-nome" type="text" data-k="info.nome" maxlength="60" placeholder="N/A" aria-label="Nome"></div>
+              <div class="l2"><span>Idade</span><input id="f-idade" type="text" data-k="info.idade" maxlength="20" placeholder="N/A" aria-label="Idade"></div>
+              <div class="l2"><span>Altura</span><input id="f-altura" type="text" data-k="info.altura" maxlength="20" placeholder="N/A" aria-label="Altura"></div>
+            </div>
+            <div>
+              <div class="l2"><span><i class="ic">★</i>Fama</span><input id="f-fama" type="number" data-k="info.fama" placeholder="0" aria-label="Fama"></div>
+              <div class="l2"><span><i class="ic rosa">♥</i>Hp</span><input id="f-hp" type="number" data-k="info.hp" placeholder="2d20" aria-label="Hp"><button type="button" class="dado" data-roll="2d20" data-alvo="info.hp" title="Rolar 2d20">🎲</button></div>
+              <div class="l2"><span><i class="ic verde">$</i>Money</span><input id="f-money" type="number" data-k="info.money" placeholder="00" aria-label="Money"></div>
+              <div class="l2"><span><i class="ic rosa">🧠</i>Sanidade</span><input id="f-san" type="number" data-k="info.sanidade" min="0" max="100" placeholder="100" aria-label="Sanidade"><b class="suf">%</b></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DOM -->
+      <section class="bloco">
+        <div class="aba"><i>◎</i>Dom</div>
+        <div class="corpo">
+          <div class="dom">
+            <div class="l2"><span>Dom</span><input id="f-dom" type="text" data-k="dom.nome" maxlength="80" placeholder="N/A" aria-label="Dom"></div>
+            <div class="l2"><span>Categorias</span><input id="f-cat" type="text" data-k="dom.categorias" maxlength="120" placeholder="N/A" aria-label="Categorias"></div>
+            <div class="l2 edom"><span><i class="ic azul">🌀</i>EDOM</span><input id="f-edom" type="number" data-k="dom.edom" min="0" aria-label="EDOM atual"><b class="suf">/</b><input id="f-edommax" type="number" data-k="dom.edomMax" min="0" aria-label="EDOM máxima"></div>
+            <div class="barra-edom" aria-hidden="true"><i id="barEdom"></i></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STATUS -->
+      <section class="bloco">
+        <div class="aba"><i>📈</i>Status</div>
+        <div class="corpo">
+          <p class="hint" style="margin:0 0 .6rem">Role 1d20 em cada status (🎲) ou digite o valor.</p>
+          <div class="status" id="status"></div>
+        </div>
+      </section>
+
+      <!-- MOCHILA -->
+      <section class="bloco">
+        <div class="aba"><i>🎒</i>Mochila</div>
+        <div class="corpo">
+          <p class="hint" style="margin:0 0 .8rem">Cada item ocupa espaço (por unidade) e a quantidade multiplica esse espaço. A mochila comporta 30; uma Mochila equipada aumenta o limite.</p>
+          <div id="invResumo" class="weight-summary"></div>
+          <div id="inventario"></div>
+        </div>
+      </section>
+
+      <!-- HABILIDADES -->
+      <section class="bloco">
+        <div class="aba"><i>✦</i>Habilidades</div>
+        <div class="corpo">
+          <div class="lista-itens" id="habilidades"></div>
+          <button type="button" class="btn mini sec" data-add="habilidades">+ Habilidade</button>
+        </div>
+      </section>
+
+      <!-- PASSIVAS -->
+      <section class="bloco">
+        <div class="aba"><i>🔒</i>Habilidades passivas</div>
+        <div class="corpo">
+          <div class="lista-itens" id="passivas"></div>
+          <button type="button" class="btn mini sec" data-add="passivas">+ Passiva</button>
+        </div>
+      </section>
+
+      <!-- APARÊNCIA -->
+      <section class="bloco">
+        <div class="aba"><i>👤</i>Aparência</div>
+        <div class="corpo">
+          <textarea data-k="aparencia" rows="6" maxlength="3000" aria-label="Aparência" placeholder="Descreva a aparência do personagem..."></textarea>
+        </div>
+      </section>
+    </div>
+
+    <div id="erro"></div>
+    <div class="save-bar">
+      <button type="submit" class="btn" id="btnSalvar">💾 Salvar ficha</button>
+      <a class="btn sec" id="btnCancelar" href="fichas.html">Cancelar</a>
+      <span class="salvo" id="salvo" aria-live="polite"></span>
+      <button type="button" class="btn danger mini" id="btnExcluir">Excluir ficha</button>
+    </div>
+  </form>
+</main>
+
+<script type="module" src="js/ficha-editor.js"></script>
+</body>
+</html>
