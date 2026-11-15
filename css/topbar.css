@@ -2,7 +2,7 @@
 .topbar{--tb-gold:#c9a24b;--tb-gold-hi:#efd283;--tb-gold-lo:#8a6a22;--tb-crim:#d9343f;--tb-muted:#a39e92;--tb-line:#3a3a43;
   position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:1rem;
   padding:.7rem max(1.6rem,env(safe-area-inset-left,0px)) .7rem max(1.6rem,env(safe-area-inset-right,0px));
-  background:linear-gradient(180deg,#232329,#121214);border-bottom:1px solid var(--tb-gold-lo);
+  background:linear-gradient(180deg,rgba(35,35,41,.97),rgba(18,18,20,.97));backdrop-filter:blur(10px);border-bottom:1px solid var(--tb-gold-lo);
   box-shadow:0 8px 26px rgba(0,0,0,.55),inset 0 -1px 0 rgba(239,210,131,.12)}
 .topbar.flow{position:relative}
 .topbar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;pointer-events:none;
@@ -22,16 +22,24 @@
 .topbar .tl.on,.topbar .who.on{color:var(--tb-gold-hi);border-color:var(--tb-crim)}
 .topbar .tl:focus-visible,.topbar .who:focus-visible,.topbar-toggle:focus-visible,.btn-link:focus-visible{outline:2px solid var(--tb-gold-hi);outline-offset:3px}
 .topbar-user{display:flex;align-items:center;gap:.9rem}
-.topbar .who{display:flex;align-items:center;gap:.5rem;color:var(--tb-gold);max-width:16ch}
-.topbar .who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.topbar-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid var(--tb-gold);background:#18181c;display:grid;place-items:center;font-size:.9rem;flex:none}
+.topbar .who{display:flex;align-items:center;gap:.6rem;color:var(--tb-gold);max-width:22ch;padding:.18rem .85rem .18rem .2rem;border:1px solid var(--tb-line);border-radius:30px;background:rgba(14,14,16,.5);border-bottom-width:1px;transition:border-color .2s,background .2s}
+.topbar .who:hover,.topbar .who.on{border-color:var(--tb-gold);background:rgba(201,162,75,.08)}
+.topbar .who-txt{display:flex;flex-direction:column;min-width:0;line-height:1.15}
+.topbar .who-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.84rem;color:var(--tb-gold-hi)}
+.topbar-role{font-family:'Cinzel',Georgia,serif;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--tb-muted)}
+.topbar-role.m{color:#f08a92}
+.topbar-avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--tb-gold);background:#18181c;display:grid;place-items:center;font-size:.9rem;flex:none}
 .btn-link{font-family:'Cinzel',Georgia,serif;font-size:.8rem;letter-spacing:.06em;color:var(--tb-muted);background:none;border:1px solid var(--tb-line);border-radius:2px;padding:.3rem .8rem;cursor:pointer;transition:color .2s,border-color .2s}
 .btn-link:hover{color:var(--tb-gold-hi);border-color:var(--tb-gold)}
 .topbar .btn.mini{font-family:'Cinzel',Georgia,serif;font-weight:700;font-size:.78rem;letter-spacing:.06em;text-decoration:none;color:#fff;background:linear-gradient(180deg,var(--tb-crim),#a3151f);border:1px solid var(--tb-gold);padding:.35rem .9rem;border-radius:2px}
+.topbar-right{display:none;align-items:center;gap:.6rem}
+.topbar-me{display:block;border-radius:50%;line-height:0}
+.topbar-me .topbar-avatar{width:38px;height:38px}
 .topbar-toggle{display:none;width:40px;height:40px;align-items:center;justify-content:center;background:#232329;border:1px solid var(--tb-gold-lo);border-radius:3px;color:var(--tb-gold);font-size:1.1rem;cursor:pointer;flex:none}
 
 @media (max-width:860px){
   .topbar{padding:.6rem 1rem}
+  .topbar-right{display:flex}
   .topbar-toggle{display:flex}
   .topbar-menu{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:.1rem;
     background:linear-gradient(180deg,#1c1c20,#121214);border-bottom:1px solid var(--tb-gold-lo);padding:.6rem 1rem 1.1rem;box-shadow:0 16px 28px rgba(0,0,0,.6)}
@@ -42,8 +50,12 @@
   .topbar .tl{padding:.6rem .1rem;font-size:.95rem}
   .topbar-divider{display:none}
   .topbar-user{justify-content:space-between;margin-top:.6rem;padding-top:.8rem;border-top:1px solid var(--tb-line)}
-  .topbar .who{max-width:none}
+  .topbar .who{max-width:none;flex:1}
+  .topbar .btn.mini{flex:1;padding:.6rem .9rem}
 }
 @keyframes tb-down{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.topbar-menu.open{animation:none}}
+/* o Entrar do menu só aparece no desktop; no celular ele já está ao lado do ☰ */
+@media (max-width:860px){.topbar-menu .topbar-user>.btn.mini{display:none}.topbar-menu .topbar-user:has(>.btn.mini){display:none}}
+.topbar .btn.mini:hover{filter:brightness(1.15)}
 @media print{.topbar{display:none}}

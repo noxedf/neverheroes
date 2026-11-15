@@ -1,6 +1,6 @@
-import { db, guard, renderTopbar, el, resizeImage } from "./fb.js";
+import { db, guard, renderTopbar, el, resizeImage, prepararImagem } from "./fb.js";
 import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-import { STATUS, esc, num, fmt, normalizar, itemVazio, resumoEspaco, tipoRotulo } from "./ficha-shared.js";
+import { STATUS, esc, num, fmt, normalizar, itemVazio, resumoEspaco, tipoRotulo, domExtraVazio } from "./ficha-shared.js";
 
 const $ = (id) => document.getElementById(id);
 const { user, profile } = await guard();
@@ -55,7 +55,7 @@ function barEdom() {
 barEdom();
 
 function pintarRetrato() {
-  $("retratoBox").replaceChildren(data.retrato ? el("img", { class: "pic", src: data.retrato, alt: "Retrato" }) : el("div", { class: "pic", text: "👤" }));
+  $("retratoBox").replaceChildren(data.retrato ? el("img", { class: "apar-pic", src: data.retrato, alt: "Imagem do personagem" }) : el("div", { class: "apar-pic ph", text: "👤 Sem imagem" }));
 }
 pintarRetrato();
 
@@ -82,10 +82,42 @@ $("tela").addEventListener("click", (e) => {
 
 $("inRetrato").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0]; if (!f) return;
-  try { data.retrato = await resizeImage(f, 320); pintarRetrato(); marcarSujo(); } catch (err) { alert(err.message); }
+  try { data.retrato = await prepararImagem(f, 1100, 450); pintarRetrato(); marcarSujo(); } catch (err) { alert(err.message); }
   e.target.value = "";
 });
 $("btnRetratoRm").addEventListener("click", () => { data.retrato = ""; pintarRetrato(); marcarSujo(); });
+
+/* ---------- doms extras ---------- */
+const MAX_DOMS_EXTRA = 8;
+function renderDoms(focoNovo) {
+  const lista = $("domsExtra"); lista.textContent = "";
+  const tem = data.domsExtra.length > 0;
+  $("chipPrincipal").textContent = tem ? "Dom 1" : "Dom";
+  $("notaEdom").hidden = !tem;
+  data.domsExtra.forEach((d, i) => {
+    const nome = el("input", { type: "text", maxlength: "80", placeholder: "N/A", "aria-label": "Dom " + (i + 2) });
+    nome.value = d.nome; nome.addEventListener("input", () => { d.nome = nome.value; marcarSujo(); });
+    const cat = el("input", { type: "text", maxlength: "120", placeholder: "N/A", "aria-label": "Categorias do dom " + (i + 2) });
+    cat.value = d.categorias; cat.addEventListener("input", () => { d.categorias = cat.value; marcarSujo(); });
+    const rm = el("button", { type: "button", class: "skill-remove dom-rm", "aria-label": "Remover dom " + (i + 2), title: "Remover este dom", text: "✕" });
+    rm.addEventListener("click", () => {
+      if ((d.nome.trim() || d.categorias.trim()) && !confirm("Remover o dom \"" + (d.nome.trim() || "Dom " + (i + 2)) + "\"?")) return;
+      data.domsExtra.splice(i, 1); renderDoms(); marcarSujo();
+    });
+    lista.append(el("div", { class: "dom-card extra" },
+      el("div", { class: "dom-card-head" }, el("span", { class: "dom-chip", text: "Dom " + (i + 2) }), rm),
+      el("div", { class: "dom" },
+        el("div", { class: "l2" }, el("span", { text: "Dom" }), nome),
+        el("div", { class: "l2" }, el("span", { text: "Categorias" }), cat))));
+  });
+  $("btnAddDom").hidden = data.domsExtra.length >= MAX_DOMS_EXTRA;
+  if (focoNovo) { const ins = lista.querySelectorAll(".dom-card.extra input[type=text]"); if (ins.length >= 2) ins[ins.length - 2].focus(); }
+}
+renderDoms();
+$("btnAddDom").addEventListener("click", () => {
+  if (data.domsExtra.length >= MAX_DOMS_EXTRA) return;
+  data.domsExtra.push(domExtraVazio()); renderDoms(true); marcarSujo();
+});
 
 /* ---------- mochila (modelo do Heartsoul) ---------- */
 const box = $("inventario");
@@ -214,12 +246,30 @@ function renderLista(chave) {
       if (!confirm("Remover \"" + (it.nome || "este item") + "\"?")) return;
       data[chave].splice(i, 1); renderLista(chave); marcarSujo();
     });
-    w.append(t, rm); lista.append(w);
+    const imgBox = el("div", { class: "hab-img" });
+    const pintar = () => {
+      const ctl = el("div", { class: "hab-ctl" });
+      const inp = el("input", { type: "file", accept: "image/*", "aria-label": "Imagem ou GIF" });
+      inp.addEventListener("change", async () => {
+        const f = inp.files && inp.files[0]; if (!f) return;
+        try { it.image = await prepararImagem(f, 700, 400); pintar(); marcarSujo(); } catch (err) { alert(err.message); }
+        inp.value = "";
+      });
+      ctl.append(el("span", { class: "lbl", text: "Imagem ou GIF (visualização)" }), inp);
+      if (it.image) {
+        const x = el("button", { type: "button", class: "btn mini sec", text: "Remover imagem" });
+        x.addEventListener("click", () => { it.image = ""; pintar(); marcarSujo(); });
+        ctl.append(x);
+      }
+      imgBox.replaceChildren(it.image ? el("img", { class: "hab-prev", src: it.image, alt: "" }) : el("div", { class: "hab-prev ph", text: "🖼️" }), ctl);
+    };
+    pintar();
+    w.append(t, imgBox, rm); lista.append(w);
   });
 }
 renderLista("habilidades"); renderLista("passivas");
 document.querySelectorAll("[data-add]").forEach((b) => b.addEventListener("click", () => {
-  data[b.dataset.add].push(b.dataset.add === "habilidades" ? { nome: "", custo: "", desc: "" } : { nome: "", desc: "" });
+  data[b.dataset.add].push(b.dataset.add === "habilidades" ? { nome: "", custo: "", desc: "", image: "" } : { nome: "", desc: "", image: "" });
   renderLista(b.dataset.add); marcarSujo();
 }));
 
@@ -230,13 +280,14 @@ async function salvar() {
   mostrarErro("");
   const itens = data.inventario.filter((i) => String(i.name).trim() || i.image || String(i.description).trim());
   const docData = {
-    info: data.info, dom: data.dom, status: data.status,
+    info: data.info, dom: data.dom,
+    domsExtra: data.domsExtra.filter((d) => d.nome.trim() || d.categorias.trim()), status: data.status,
     inventario: itens.length ? itens : [], habilidades: data.habilidades, passivas: data.passivas,
     aparencia: data.aparencia, retrato: data.retrato,
     nome: String(data.info.nome || "").trim() || "Sem nome",
     ownerUid: raw.ownerUid, ownerName: raw.ownerName || "", updatedAt: serverTimestamp()
   };
-  if (JSON.stringify(docData).length > 900000) { mostrarErro("A ficha ficou grande demais. Remova algumas imagens de itens e tente de novo."); return; }
+  if (JSON.stringify(docData).length > 900000) { mostrarErro("A ficha ficou grande demais. Remova ou reduza algumas imagens e GIFs e tente de novo."); return; }
   const b = $("btnSalvar"); b.disabled = true; $("salvo").className = "salvo pend"; $("salvo").textContent = "Salvando…";
   try {
     await setDoc(doc(db, "fichas", id), docData);

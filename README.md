@@ -76,6 +76,10 @@ A mesma edição promove qualquer outra pessoa. Quem já tinha a coleção `admi
 - No editor, nada é gravado até clicar em **Salvar ficha**. Sair com alterações pendentes pede confirmação.
 - A mochila funciona como a do Heartsoul: cada item tem nome, espaço por unidade, quantidade, tipo (comum, consumível ou mochila), imagem e descrição. O limite é 30 de espaço; uma Mochila equipada soma o espaço extra dela. Fichas antigas (30 campos de texto) são convertidas em itens ao abrir.
 - A ficha mantém o visual de ficha do Never Heroes: logo, blocos com aba em seta, "Espaço 00/30" e, na mochila, o mesmo modelo do HeartSoul: resumo de espaço com medidor e itens com tipo, imagem e descrição.
+- Dom: o dom principal mais o botão **+ Adicionar outro dom** (até 8 extras, cada um com nome e categorias). A EDOM é uma reserva só, compartilhada por todos os doms. Fichas antigas, sem doms extras, abrem normalmente. Os extras ficam no campo `domsExtra` da ficha.
+- Conta: a barra do topo mostra foto, nome e papel (Jogador ou Mestre) em todas as páginas, inclusive no Conceitos. Quem não entrou vê o botão Entrar. No celular a conta fica ao lado do ☰.
 - Status: Sorte, Vontade, Foco, Destreza, Força, Agilidade, Intelecto, Constituição, Carisma e **Instintos**. Fichas antigas, sem Instintos, abrem normalmente com o campo vazio.
 - O botão 🎲 rola 1d20 nos status e 2d20 no HP.
-- Fotos (perfil e retrato) são redimensionadas no navegador e guardadas no próprio documento.
+- Habilidades e passivas aceitam uma imagem ou GIF de visualização (clique nela para ampliar). A Aparência tem a imagem do personagem em tamanho grande, sem recorte; o retrato pequeno de Informações e da lista de fichas usa essa mesma imagem.
+- GIFs entram animados e sem alteração, com limite de 400 KB (450 KB na Aparência). Imagens comuns são reduzidas automaticamente. Tudo fica guardado no próprio documento da ficha, que tem limite de cerca de 900 KB no total.
+- Fotos de perfil e imagens dos itens continuam sendo redimensionadas no navegador.

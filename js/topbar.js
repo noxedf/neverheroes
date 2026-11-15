@@ -11,9 +11,19 @@ function h(tag, props, ...kids) {
   return e;
 }
 
-/* opts: { home, subtitulo, ativa, grupos:[{rotulo, links:[{id,texto,href}]}], user:{nome, avatar}|null, onSair, flow } */
+const avatar = (user, cls) => user.avatar
+  ? h("img", { class: cls, src: user.avatar, alt: "" })
+  : h("span", { class: cls + " ph", text: "👤" });
+
+/* opts: { home, subtitulo, ativa, grupos:[{rotulo, links:[{id,texto,href}]}],
+           user:{nome, avatar, papel, mestre}|null, onSair, entrar, flow } */
 export function buildTopbar(opts) {
   const bar = document.getElementById("topbar");
+  // Reconstruir a barra (ex.: depois do login ser conhecido) não acumula listeners.
+  if (bar._ac) bar._ac.abort();
+  const ac = (bar._ac = new AbortController());
+  const sig = { signal: ac.signal };
+
   bar.className = "topbar" + (opts.flow ? " flow" : "");
   bar.textContent = "";
 
@@ -30,17 +40,22 @@ export function buildTopbar(opts) {
     g.links.forEach((l) => grupo.append(h("a", { class: "tl" + (l.id === opts.ativa ? " on" : ""), href: l.href, text: l.texto })));
     menu.append(grupo);
   });
+
+  // No celular o menu fica recolhido: a conta (ou o Entrar) fica sempre à vista ao lado do ☰.
+  let rapido = null;
   if (opts.user) {
     menu.append(h("span", { class: "topbar-divider" }));
-    const av = opts.user.avatar
-      ? h("img", { class: "topbar-avatar", src: opts.user.avatar, alt: "" })
-      : h("span", { class: "topbar-avatar ph", text: "👤" });
+    const papel = h("span", { class: "topbar-role" + (opts.user.mestre ? " m" : ""), text: opts.user.papel || (opts.user.mestre ? "Mestre" : "Jogador") });
     menu.append(h("div", { class: "topbar-user" },
-      h("a", { class: "who" + (opts.ativa === "perfil" ? " on" : ""), href: "perfil.html", title: "Meu perfil" }, av, h("span", { text: opts.user.nome || "Perfil" })),
+      h("a", { class: "who" + (opts.ativa === "perfil" ? " on" : ""), href: "perfil.html", title: "Meu perfil" },
+        avatar(opts.user, "topbar-avatar"),
+        h("span", { class: "who-txt" }, h("span", { class: "who-name", text: opts.user.nome || "Perfil" }), papel)),
       h("button", { type: "button", class: "btn-link", text: "Sair", onclick: opts.onSair })));
+    rapido = h("a", { class: "topbar-me", href: "perfil.html", "aria-label": "Meu perfil: " + (opts.user.nome || "") }, avatar(opts.user, "topbar-avatar"));
   } else if (opts.entrar) {
     menu.append(h("span", { class: "topbar-divider" }));
     menu.append(h("div", { class: "topbar-user" }, h("a", { class: "btn mini", href: opts.entrar, text: "Entrar" })));
+    rapido = h("a", { class: "btn mini topbar-me-entrar", href: opts.entrar, text: "Entrar" });
   }
 
   const toggle = h("button", { type: "button", class: "topbar-toggle", "aria-label": "Abrir menu", "aria-expanded": "false", "aria-controls": "topbarMenu", text: "☰" });
@@ -52,9 +67,9 @@ export function buildTopbar(opts) {
     toggle.setAttribute("aria-expanded", String(abre));
     toggle.textContent = abre ? "✕" : "☰";
   });
-  document.addEventListener("click", (e) => { if (!bar.contains(e.target)) fechar(); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") fechar(); });
-  matchMedia("(min-width:861px)").addEventListener("change", fechar);
+  document.addEventListener("click", (e) => { if (!bar.contains(e.target)) fechar(); }, sig);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") fechar(); }, sig);
+  matchMedia("(min-width:861px)").addEventListener("change", fechar, sig);
 
-  bar.append(brand, toggle, menu);
+  bar.append(brand, h("div", { class: "topbar-right" }, rapido, toggle), menu);
 }

@@ -29,14 +29,6 @@
       <section class="bloco">
         <div class="aba"><i>✦</i>Informações</div>
         <div class="corpo">
-          <div class="retrato">
-            <div id="retratoBox"></div>
-            <div class="ctl">
-              <span class="lbl">Retrato do personagem</span>
-              <input type="file" id="inRetrato" accept="image/*" aria-label="Retrato do personagem">
-              <div><button type="button" class="btn mini sec" id="btnRetratoRm">Remover retrato</button></div>
-            </div>
-          </div>
           <div class="info">
             <div>
               <div class="l2"><span>Nome</span><input id="f-nome" type="text" data-k="info.nome" maxlength="60" placeholder="N/A" aria-label="Nome"></div>
@@ -57,11 +49,19 @@
       <section class="bloco">
         <div class="aba"><i>◎</i>Dom</div>
         <div class="corpo">
-          <div class="dom">
-            <div class="l2"><span>Dom</span><input id="f-dom" type="text" data-k="dom.nome" maxlength="80" placeholder="N/A" aria-label="Dom"></div>
-            <div class="l2"><span>Categorias</span><input id="f-cat" type="text" data-k="dom.categorias" maxlength="120" placeholder="N/A" aria-label="Categorias"></div>
+          <div class="dom-card">
+            <div class="dom-card-head"><span class="dom-chip" id="chipPrincipal">Dom</span></div>
+            <div class="dom">
+              <div class="l2"><span>Dom</span><input id="f-dom" type="text" data-k="dom.nome" maxlength="80" placeholder="N/A" aria-label="Dom"></div>
+              <div class="l2"><span>Categorias</span><input id="f-cat" type="text" data-k="dom.categorias" maxlength="120" placeholder="N/A" aria-label="Categorias"></div>
+            </div>
+          </div>
+          <div id="domsExtra"></div>
+          <button type="button" class="btn-add" id="btnAddDom"><i aria-hidden="true">+</i> Adicionar outro dom</button>
+          <div class="dom dom-edom">
             <div class="l2 edom"><span><i class="ic azul">🌀</i>EDOM</span><input id="f-edom" type="number" data-k="dom.edom" min="0" aria-label="EDOM atual"><b class="suf">/</b><input id="f-edommax" type="number" data-k="dom.edomMax" min="0" aria-label="EDOM máxima"></div>
             <div class="barra-edom" aria-hidden="true"><i id="barEdom"></i></div>
+            <p class="hint dom-edom-nota" id="notaEdom" hidden>A EDOM é uma reserva só, usada por todos os seus doms.</p>
           </div>
         </div>
       </section>
@@ -107,6 +107,14 @@
       <section class="bloco">
         <div class="aba"><i>👤</i>Aparência</div>
         <div class="corpo">
+          <div class="apar-img">
+            <div id="retratoBox" class="apar-view"></div>
+            <div class="ctl">
+              <span class="lbl">Imagem do personagem (JPG, PNG ou GIF)</span>
+              <input type="file" id="inRetrato" accept="image/*" aria-label="Imagem do personagem">
+              <div><button type="button" class="btn mini sec" id="btnRetratoRm">Remover imagem</button></div>
+            </div>
+          </div>
           <textarea data-k="aparencia" rows="6" maxlength="3000" aria-label="Aparência" placeholder="Descreva a aparência do personagem..."></textarea>
         </div>
       </section>

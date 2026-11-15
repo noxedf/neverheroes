@@ -67,13 +67,15 @@ export function avatarNode(profile, cls) {
   return el("span", { class: cls, text: "👤" });
 }
 
-export function renderTopbar(profile, ativa, subtitulo) {
+export function renderTopbar(profile, ativa, subtitulo, extra) {
+  const mestre = profile.role === "master";
   const grupos = [{ rotulo: "Mesa", links: [{ id: "fichas", texto: "Fichas", href: "fichas.html" }] }];
-  if (profile.role === "master") grupos[0].links.push({ id: "master", texto: "Painel do Mestre", href: "master.html" });
+  if (mestre) grupos[0].links.push({ id: "master", texto: "Painel do Mestre", href: "master.html" });
   grupos.push({ rotulo: "Mundo", links: [{ id: "conceitos", texto: "Conceitos", href: "conceitos.html" }] });
   buildTopbar({
     home: home(profile), subtitulo, ativa, grupos,
-    user: { nome: profile.name, avatar: profile.avatarImage },
+    flow: !!(extra && extra.flow),
+    user: { nome: profile.name, avatar: profile.avatarImage, mestre, papel: mestre ? "Mestre" : "Jogador" },
     onSair: async () => { await signOut(auth); location.replace("index.html"); }
   });
 }
@@ -108,3 +110,33 @@ export function fmtData(ts) {
 }
 
 export const FONTS = "https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap";
+
+// Upload de imagem sem recorte. GIF entra como está (para não perder a animação) até gifMaxKB;
+// as demais imagens são reduzidas para caber em max pixels no maior lado.
+export function prepararImagem(file, max, gifMaxKB) {
+  max = max || 900; gifMaxKB = gifMaxKB || 400;
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type.startsWith("image/")) { reject(new Error("Escolha um arquivo de imagem válido.")); return; }
+    const gif = file.type === "image/gif";
+    if (gif && file.size > gifMaxKB * 1024) {
+      reject(new Error("Esse GIF tem " + Math.round(file.size / 1024) + " KB e o limite é " + gifMaxKB + " KB. Reduza o GIF e tente de novo."));
+      return;
+    }
+    const r = new FileReader();
+    r.onerror = () => reject(new Error("Não foi possível ler esse arquivo."));
+    r.onload = (e) => {
+      if (gif) { resolve(e.target.result); return; }
+      const img = new Image();
+      img.onerror = () => reject(new Error("Não foi possível ler essa imagem."));
+      img.onload = () => {
+        const k = Math.min(1, max / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * k)), h = Math.max(1, Math.round(img.height * k));
+        const c = document.createElement("canvas"); c.width = w; c.height = h;
+        const x = c.getContext("2d"); x.fillStyle = "#0e0e10"; x.fillRect(0, 0, w, h); x.drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL("image/jpeg", 0.86));
+      };
+      img.src = e.target.result;
+    };
+    r.readAsDataURL(file);
+  });
+}

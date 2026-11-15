@@ -17,7 +17,7 @@ export const fmt = (n) => String(r2(n)).replace(".", ",");
 
 // Imagens só entram se forem data-URL de imagem: o Mestre abre fichas de outras pessoas.
 export function safeImg(v) {
-  return typeof v === "string" && v.length < 400000 && /^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(v) ? v : "";
+  return typeof v === "string" && v.length < 700000 && /^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(v) ? v : "";
 }
 
 export function itemVazio() {
@@ -41,11 +41,25 @@ export function itemShape(it) {
   };
 }
 
+// Doms além do principal: só nome e categorias (a EDOM é uma reserva só, compartilhada).
+export const domExtraVazio = () => ({ nome: "", categorias: "" });
+export function domExtraShape(d) {
+  d = d || {};
+  return { nome: String(d.nome || "").slice(0, 80), categorias: String(d.categorias || "").slice(0, 120) };
+}
+// Nomes de todos os doms preenchidos (principal primeiro). Aceita ficha crua ou normalizada.
+export function nomesDoms(f) {
+  f = f || {};
+  return [f.dom && f.dom.nome].concat(Array.isArray(f.domsExtra) ? f.domsExtra.map((d) => d && d.nome) : [])
+    .map((n) => String(n || "").trim()).filter(Boolean);
+}
+
 export function novaFicha() {
   const status = {}; STATUS.forEach((s) => (status[s[0]] = ""));
   return {
     info: { nome: "", idade: "", altura: "", fama: 0, hp: "", money: 0, sanidade: 100 },
     dom: { nome: "", categorias: "", edom: 100, edomMax: 100 },
+    domsExtra: [],
     status, inventario: [itemVazio()], habilidades: [], passivas: [], aparencia: "", retrato: ""
   };
 }
@@ -61,11 +75,13 @@ export function normalizar(raw) {
   const lista = (l, comCusto) => (Array.isArray(l) ? l : []).map((x) => ({
     nome: String((x && x.nome) || "").slice(0, 80),
     ...(comCusto ? { custo: x && x.custo !== undefined && x.custo !== "" ? num(x.custo, "") : "" } : {}),
-    desc: String((x && x.desc) || "").slice(0, 1500)
+    desc: String((x && x.desc) || "").slice(0, 1500),
+    image: safeImg(x && x.image)
   }));
   return {
     info: { ...b.info, ...(raw.info || {}) },
     dom: { ...b.dom, ...(raw.dom || {}) },
+    domsExtra: (Array.isArray(raw.domsExtra) ? raw.domsExtra : []).slice(0, 8).map(domExtraShape),
     status: { ...b.status, ...(raw.status || {}) },
     inventario: inv.length ? inv : [itemVazio()],
     habilidades: lista(raw.habilidades, true),
@@ -102,3 +118,15 @@ export function resumoEspaco(items) {
 export const tipoRotulo = (t) => (t === "consumivel" ? "🧪 Consumível" : t === "mochila" ? "🎒 Mochila" : "📦 Item comum");
 export const tipoIcone = (t) => (t === "consumivel" ? "🧪" : t === "mochila" ? "🎒" : "📦");
 
+
+// Clique numa imagem para vê-la grande (Esc ou clique fecha).
+export function ampliarImagem(src) {
+  if (!src) return;
+  const fundo = document.createElement("div"); fundo.className = "lightbox";
+  const im = document.createElement("img"); im.src = src; im.alt = "";
+  fundo.append(im);
+  const fechar = () => { fundo.remove(); document.removeEventListener("keydown", tecla); };
+  const tecla = (e) => { if (e.key === "Escape") fechar(); };
+  fundo.addEventListener("click", fechar); document.addEventListener("keydown", tecla);
+  document.body.append(fundo);
+}

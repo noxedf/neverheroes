@@ -1,6 +1,6 @@
 import { db, guard, renderTopbar, el } from "./fb.js";
 import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-import { STATUS, esc, fmt, num, normalizar, nomesNaoVazios, resumoEspaco, tipoRotulo, tipoIcone } from "./ficha-shared.js";
+import { ampliarImagem, STATUS, esc, fmt, num, normalizar, nomesNaoVazios, resumoEspaco, tipoRotulo, tipoIcone } from "./ficha-shared.js";
 
 const { user, profile } = await guard();
 const content = document.getElementById("content");
@@ -92,11 +92,18 @@ function render() {
     <section class="bloco">
       <div class="aba"><i>◎</i>Dom</div>
       <div class="corpo">
-        <div class="dom">
-          ${linha("", "Dom", dash(dm.nome))}${linha("", "Categorias", dash(dm.categorias))}
-          ${linha("🌀", "EDOM", dash(dm.edom) + " / " + dash(dm.edomMax), "azul")}
-          ${barraEdom(dm.edom, dm.edomMax)}
-        </div>
+        ${(() => {
+          const lista = [{ nome: dm.nome, categorias: dm.categorias }].concat(d.domsExtra.filter((x) => x.nome || x.categorias));
+          const varios = lista.length > 1;
+          return lista.map((x, k) => `<div class="dom-card${k ? " extra" : ""}">
+            ${varios ? `<div class="dom-card-head"><span class="dom-chip">Dom ${k + 1}</span></div>` : ""}
+            <div class="dom">${linha("", "Dom", dash(x.nome))}${linha("", "Categorias", dash(x.categorias))}</div>
+          </div>`).join("") + `<div class="dom dom-edom">
+            ${linha("🌀", "EDOM", dash(dm.edom) + " / " + dash(dm.edomMax), "azul")}
+            ${barraEdom(dm.edom, dm.edomMax)}
+            ${varios ? `<p class="hint dom-edom-nota">A EDOM é uma reserva só, usada por todos os seus doms.</p>` : ""}
+          </div>`;
+        })()}
       </div>
     </section>
 
@@ -116,24 +123,25 @@ function render() {
     <section class="bloco">
       <div class="aba"><i>✦</i>Habilidades</div>
       <div class="corpo">
-        ${habs.length ? `<div class="sheet-item-list">${habs.map((h) => `<div class="sheet-item"><div class="si-head"><span class="si-name">${esc(h.nome || "Sem nome")}</span>${h.custo !== "" && h.custo != null ? `<span class="si-meta">${esc(h.custo)} EDOM</span>` : ""}</div>${h.desc ? `<p>${esc(h.desc)}</p>` : ""}</div>`).join("")}</div>` : `<p class="hint" style="margin:0">Nenhuma habilidade.</p>`}
+        ${habs.length ? `<div class="sheet-item-list">${habs.map((h) => `<div class="sheet-item"><div class="si-head"><span class="si-name">${esc(h.nome || "Sem nome")}</span>${h.custo !== "" && h.custo != null ? `<span class="si-meta">${esc(h.custo)} EDOM</span>` : ""}</div>${h.image ? `<img class="si-img" data-zoom src="${h.image}" alt="${esc(h.nome || "Habilidade")}">` : ""}${h.desc ? `<p>${esc(h.desc)}</p>` : ""}</div>`).join("")}</div>` : `<p class="hint" style="margin:0">Nenhuma habilidade.</p>`}
       </div>
     </section>
 
     <section class="bloco">
       <div class="aba"><i>🔒</i>Habilidades passivas</div>
       <div class="corpo">
-        ${pass.length ? `<div class="sheet-item-list">${pass.map((h) => `<div class="sheet-item"><div class="si-head"><span class="si-name">${esc(h.nome || "Sem nome")}</span></div>${h.desc ? `<p>${esc(h.desc)}</p>` : ""}</div>`).join("")}</div>` : `<p class="hint" style="margin:0">Nenhuma habilidade passiva.</p>`}
+        ${pass.length ? `<div class="sheet-item-list">${pass.map((h) => `<div class="sheet-item"><div class="si-head"><span class="si-name">${esc(h.nome || "Sem nome")}</span></div>${h.image ? `<img class="si-img" data-zoom src="${h.image}" alt="${esc(h.nome || "Habilidade")}">` : ""}${h.desc ? `<p>${esc(h.desc)}</p>` : ""}</div>`).join("")}</div>` : `<p class="hint" style="margin:0">Nenhuma habilidade passiva.</p>`}
       </div>
     </section>
 
     <section class="bloco">
       <div class="aba"><i>👤</i>Aparência</div>
-      <div class="corpo">${d.aparencia.trim() ? `<p class="sheet-text">${esc(d.aparencia)}</p>` : `<p class="hint" style="margin:0">Sem descrição.</p>`}</div>
+      <div class="corpo">${d.retrato ? `<div class="apar-view"><img class="apar-pic" data-zoom src="${d.retrato}" alt="${esc(nome)}"></div>` : ""}${d.aparencia.trim() ? `<p class="sheet-text">${esc(d.aparencia)}</p>` : `<p class="hint" style="margin:0">Sem descrição.</p>`}</div>
     </section>
   </div>`;
 
   document.getElementById("btnImprimir").onclick = () => print();
+  content.querySelectorAll("[data-zoom]").forEach((im) => im.addEventListener("click", () => ampliarImagem(im.src)));
   content.querySelectorAll("[data-usar]").forEach((b) => b.addEventListener("click", () => usar(parseInt(b.dataset.usar, 10), b)));
 }
 

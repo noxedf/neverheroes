@@ -61,7 +61,7 @@
 </header>
 
 <nav><div class="wrap">
-  <a href="#dom">O Dom</a><a href="#edom">A EDOM</a><a href="#origens">Origens</a><a href="#limite">Limite do corpo</a><a href="#fusao">Fusão de dons</a><a href="#categorias">Categorias</a><a href="#evolucao">Evolução</a><a href="#semideus">Semi-Deuses</a><a href="#regra">Regra de mesa</a><a href="index.html">Fichas</a>
+  <a href="#dom">O Dom</a><a href="#edom">A EDOM</a><a href="#origens">Origens</a><a href="#limite">Limite do corpo</a><a href="#fusao">Fusão de dons</a><a href="#categorias">Categorias</a><a href="#evolucao">Evolução</a><a href="#semideus">Semi-Deuses</a><a href="#regra">Regra de mesa</a><a href="index.html" id="navFichas">Fichas</a>
 </div></nav>
 
 <main>
@@ -184,8 +184,31 @@
 <script src="js/main.js"></script>
 <script type="module">
 import { buildTopbar } from "./js/topbar.js";
-buildTopbar({ home: "index.html", subtitulo: "Conceitos", ativa: "conceitos", flow: true, entrar: "index.html",
-  grupos: [{ rotulo: "Mesa", links: [{ id: "fichas", texto: "Fichas", href: "index.html" }] }, { rotulo: "Mundo", links: [{ id: "conceitos", texto: "Conceitos", href: "conceitos.html" }] }] });
+
+const mundo = { rotulo: "Mundo", links: [{ id: "conceitos", texto: "Conceitos", href: "conceitos.html" }] };
+const base = { home: "index.html", subtitulo: "Conceitos", ativa: "conceitos", flow: true };
+const visitante = () => buildTopbar({ ...base, entrar: "index.html",
+  grupos: [{ rotulo: "Mesa", links: [{ id: "fichas", texto: "Fichas", href: "index.html" }] }, mundo] });
+
+// Enquanto o login não é conhecido, a barra não mostra nem "Entrar" nem conta (evita piscar o estado errado).
+buildTopbar({ ...base, grupos: [{ rotulo: "Mesa", links: [{ id: "fichas", texto: "Fichas", href: "index.html" }] }, mundo] });
+let resolvido = false;
+const plano = setTimeout(() => { if (!resolvido) visitante(); }, 4000);
+
+try {
+  const [fb, authMod] = await Promise.all([import("./js/fb.js"), import("https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js")]);
+  authMod.onAuthStateChanged(fb.auth, async (u) => {
+    resolvido = true; clearTimeout(plano);
+    if (!u) { visitante(); return; }
+    try {
+      let p = await fb.getProfile(u.uid);
+      if (!p) p = await fb.createProfile(u);
+      fb.renderTopbar(p, "conceitos", "Conceitos", { flow: true });
+      document.getElementById("navFichas").href = fb.home(p);
+      document.getElementById("navFichas").textContent = p.role === "master" ? "Painel do Mestre" : "Minhas fichas";
+    } catch (e) { visitante(); }
+  });
+} catch (e) { resolvido = true; clearTimeout(plano); visitante(); }
 </script>
 </body>
 </html>
