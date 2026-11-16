@@ -4,6 +4,7 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 import { buildTopbar } from "./topbar.js";
+import { ico } from "./icons.js";
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
@@ -64,7 +65,7 @@ export function guard(role) {
 
 export function avatarNode(profile, cls) {
   if (profile && profile.avatarImage) return el("img", { class: cls, src: profile.avatarImage, alt: "" });
-  return el("span", { class: cls, text: "👤" });
+  const s = el("span", { class: cls }); s.innerHTML = ico("user"); return s;
 }
 
 export function renderTopbar(profile, ativa, subtitulo, extra) {
@@ -104,12 +105,17 @@ export function resizeImage(file, dim) {
   });
 }
 
+export function domThumb(f) {
+  const im = f && f.dom && f.dom.image;
+  return typeof im === "string" && /^data:image\/(jpeg|png|webp|gif);base64,/.test(im) ? el("img", { class: "fc-dom", src: im, alt: "Dom", loading: "lazy" }) : null;
+}
+
 export function fmtData(ts) {
   if (!ts || !ts.seconds) return "";
   return new Date(ts.seconds * 1000).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-export const FONTS = "https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap";
+export const FONTS = "https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&display=swap";
 
 // Upload de imagem sem recorte. GIF entra como está (para não perder a animação) até gifMaxKB;
 // as demais imagens são reduzidas para caber em max pixels no maior lado.

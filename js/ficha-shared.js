@@ -1,10 +1,11 @@
+import { ico } from "./icons.js";
 // Modelo da ficha e regras do inventário (usado pela visualização e pelo editor).
 export const STATUS = [
-  ["sorte", "Sorte", "🍀"], ["vontade", "Vontade", "🔥"],
-  ["foco", "Foco", "🎯"], ["destreza", "Destreza", "🕊️"],
-  ["forca", "Força", "💪"], ["agilidade", "Agilidade", "🏃"],
-  ["intelecto", "Intelecto", "📖"], ["constituicao", "Constituição", "🛡️"],
-  ["carisma", "Carisma", "🎭"], ["instintos", "Instintos", "🐺"]
+  ["sorte", "Sorte", "clover"], ["vontade", "Vontade", "flame"],
+  ["foco", "Foco", "target"], ["destreza", "Destreza", "feather"],
+  ["forca", "Força", "dumbbell"], ["agilidade", "Agilidade", "bolt"],
+  ["intelecto", "Intelecto", "book"], ["constituicao", "Constituição", "shield"],
+  ["carisma", "Carisma", "spark"], ["instintos", "Instintos", "eye"]
 ];
 export const ESPACO_BASE = 30; // "Espaço 00/30" da ficha
 
@@ -42,10 +43,10 @@ export function itemShape(it) {
 }
 
 // Doms além do principal: só nome e categorias (a EDOM é uma reserva só, compartilhada).
-export const domExtraVazio = () => ({ nome: "", categorias: "" });
+export const domExtraVazio = () => ({ nome: "", categorias: "", image: "" });
 export function domExtraShape(d) {
   d = d || {};
-  return { nome: String(d.nome || "").slice(0, 80), categorias: String(d.categorias || "").slice(0, 120) };
+  return { nome: String(d.nome || "").slice(0, 80), categorias: String(d.categorias || "").slice(0, 120), image: safeImg(d.image) };
 }
 // Nomes de todos os doms preenchidos (principal primeiro). Aceita ficha crua ou normalizada.
 export function nomesDoms(f) {
@@ -58,7 +59,7 @@ export function novaFicha() {
   const status = {}; STATUS.forEach((s) => (status[s[0]] = ""));
   return {
     info: { nome: "", idade: "", altura: "", fama: 0, hp: "", money: 0, sanidade: 100 },
-    dom: { nome: "", categorias: "", edom: 100, edomMax: 100 },
+    dom: { nome: "", categorias: "", edom: 100, edomMax: 100, image: "" },
     domsExtra: [],
     status, inventario: [itemVazio()], habilidades: [], passivas: [], aparencia: "", retrato: ""
   };
@@ -80,7 +81,7 @@ export function normalizar(raw) {
   }));
   return {
     info: { ...b.info, ...(raw.info || {}) },
-    dom: { ...b.dom, ...(raw.dom || {}) },
+    dom: { ...b.dom, ...(raw.dom || {}), image: safeImg(raw.dom && raw.dom.image) },
     domsExtra: (Array.isArray(raw.domsExtra) ? raw.domsExtra : []).slice(0, 8).map(domExtraShape),
     status: { ...b.status, ...(raw.status || {}) },
     inventario: inv.length ? inv : [itemVazio()],
@@ -115,8 +116,8 @@ export function resumoEspaco(items) {
     <div class="weight-gauge"><span class="weight-gauge-fill ${st.cls}" style="width:${pct}%"></span></div>
     ${usado > cap ? `<p class="hint" style="margin:.5rem 0 0">Você carrega ${fmt(usado - cap)} de espaço além do limite.</p>` : ""}`;
 }
-export const tipoRotulo = (t) => (t === "consumivel" ? "🧪 Consumível" : t === "mochila" ? "🎒 Mochila" : "📦 Item comum");
-export const tipoIcone = (t) => (t === "consumivel" ? "🧪" : t === "mochila" ? "🎒" : "📦");
+export const tipoRotulo = (t) => (t === "consumivel" ? ico("flask") + " Consumível" : t === "mochila" ? ico("bag") + " Mochila" : ico("box") + " Item comum");
+export const tipoIcone = (t) => (t === "consumivel" ? ico("flask") : t === "mochila" ? ico("bag") : ico("box"));
 
 
 // Clique numa imagem para vê-la grande (Esc ou clique fecha).

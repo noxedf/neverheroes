@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<script>try{var l=JSON.parse(localStorage.getItem('nh-leitura')||'{}');if(l.t)document.documentElement.dataset.tema=l.t;if(l.s)document.documentElement.style.fontSize=l.s+'%'}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Never Heroes</title>
 <meta name="description" content="Never Heroes: um RPG de dons, EDOM e semi-deuses. Entre para criar e guardar as suas fichas.">
@@ -22,7 +23,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="images/icon.png">
 <link rel="apple-touch-icon" href="images/icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/app.css">
 <link rel="stylesheet" href="css/topbar.css">
 <link rel="stylesheet" href="css/refino.css">
@@ -37,8 +38,8 @@
     <p class="auth-sub">Suas fichas, guardadas entre uma sessão e outra</p>
 
     <div class="tabs">
-      <button type="button" id="tabJog" class="on">⚔️ Sou Jogador</button>
-      <button type="button" id="tabMes">📖 Sou Mestre</button>
+      <button type="button" id="tabJog" class="on">Sou Jogador</button>
+      <button type="button" id="tabMes">Sou Mestre</button>
     </div>
 
     <div id="aviso" role="alert"></div>
@@ -88,7 +89,7 @@
     </div>
   </div>
 
-  <p class="auth-foot"><a href="conceitos.html">📖 Conhecer os conceitos do RPG</a></p>
+  <p class="auth-foot"><a href="conceitos.html">Conhecer os conceitos do RPG</a></p>
 </div>
 
 <script type="module">
@@ -200,5 +201,6 @@ $("fMestre").addEventListener("submit", async (e) => {
   } catch (err) { ocupado = false; aviso(erro(err)); }
 });
 </script>
+<script type="module" src="js/ui.js"></script>
 </body>
 </html>

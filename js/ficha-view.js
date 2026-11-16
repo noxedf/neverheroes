@@ -1,5 +1,7 @@
 import { db, guard, renderTopbar, el } from "./fb.js";
 import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { aviso, confirmar } from "./ui.js";
+import { ico } from "./icons.js";
 import { ampliarImagem, STATUS, esc, fmt, num, normalizar, nomesNaoVazios, resumoEspaco, tipoRotulo, tipoIcone } from "./ficha-shared.js";
 
 const { user, profile } = await guard();
@@ -31,7 +33,7 @@ function barraEdom(atual, max) {
   const pct = m > 0 ? Math.max(0, Math.min(100, (a / m) * 100)) : 0;
   return `<div class="barra-edom"><i style="width:${pct}%"></i></div>`;
 }
-const linha = (ic, nome, valor, extra) => `<div class="l2"><span>${ic ? `<i class="ic ${extra || ""}">${ic}</i>` : ""}${nome}</span><b class="val">${valor}</b></div>`;
+const linha = (ic, nome, valor, extra) => `<div class="l2"><span>${ic ? `<i class="ic ${extra || ""}">${ico(ic)}</i>` : ""}${nome}</span><b class="val">${valor}</b></div>`;
 
 function cartaoItem(it, i) {
   const sub = fmt(num(it.espaco, 0) * (it.qty || 0));
@@ -39,12 +41,12 @@ function cartaoItem(it, i) {
     ? `<button type="button" class="btn mini sec" data-usar="${i}">Usar 1</button>` : "";
   return `<article class="inv-card is-${it.tipo}">
     <div class="inv-card-head">
-      ${it.image ? `<img src="${it.image}" alt="${esc(it.name)}" class="inv-card-thumb">` : `<span class="inv-card-icon">${tipoIcone(it.tipo)}</span>`}
+      ${it.image ? `<img loading="lazy" decoding="async" src="${it.image}" alt="${esc(it.name)}" class="inv-card-thumb">` : `<span class="inv-card-icon">${tipoIcone(it.tipo)}</span>`}
       <div class="inv-card-name">${esc(it.name)}</div>
       <span class="inv-card-qty" title="Quantidade">×${it.qty}</span>
     </div>
-    ${it.tipo === "consumivel" ? `<div class="inv-card-tags"><span class="effect-tag">🧪 Consumível</span>${it.effectValue ? `<span class="effect-tag dice">🎲 ${esc(it.effectValue)}</span>` : ""}</div>${it.effectDesc ? `<p class="inv-card-desc"><b>Efeito:</b> ${esc(it.effectDesc)}</p>` : ""}` : ""}
-    ${it.tipo === "mochila" ? `<div class="inv-card-tags"><span class="effect-tag backpack">🎒 Mochila ${it.backpackEquipped ? "(equipada)" : "(guardada)"}</span><span class="effect-tag">+${fmt(it.backpackBonus)} espaço</span></div>` : ""}
+    ${it.tipo === "consumivel" ? `<div class="inv-card-tags"><span class="effect-tag">${ico("flask")} Consumível</span>${it.effectValue ? `<span class="effect-tag dice">${ico("die")} ${esc(it.effectValue)}</span>` : ""}</div>${it.effectDesc ? `<p class="inv-card-desc"><b>Efeito:</b> ${esc(it.effectDesc)}</p>` : ""}` : ""}
+    ${it.tipo === "mochila" ? `<div class="inv-card-tags"><span class="effect-tag backpack">${ico("bag")} Mochila ${it.backpackEquipped ? "(equipada)" : "(guardada)"}</span><span class="effect-tag">+${fmt(it.backpackBonus)} espaço</span></div>` : ""}
     ${it.description ? `<p class="inv-card-desc">${esc(it.description)}</p>` : ""}
     <div class="inv-card-foot"><span class="inv-card-kind">${tipoRotulo(it.tipo)}</span><span>${fmt(it.espaco)} por unidade · subtotal <b>${sub}</b></span>${usar}</div>
   </article>`;
@@ -61,8 +63,8 @@ function render() {
   <div class="toolbar view-actions">
     <a class="btn mini sec" href="${voltar}">← ${dono ? "Minhas fichas" : "Painel do Mestre"}</a>
     <div class="row-btns" style="margin:0">
-      <button type="button" class="btn mini sec" id="btnImprimir">🖨️ Imprimir</button>
-      ${podeEditar ? `<a class="btn mini" href="ficha-editor.html?id=${encodeURIComponent(id)}">✏️ Editar ficha</a>` : ""}
+      <button type="button" class="btn mini sec" id="btnImprimir">Imprimir</button>
+      ${podeEditar ? `<a class="btn mini" href="ficha-editor.html?id=${encodeURIComponent(id)}">Editar ficha</a>` : ""}
     </div>
   </div>
   ${dono ? "" : `<p class="dono">Ficha de ${esc(owner.nome || "jogador")}</p>`}
@@ -74,14 +76,14 @@ function render() {
       <div class="aba"><i>✦</i>Informações</div>
       <div class="corpo">
         <div class="info-wrap">
-        <div class="retrato">${d.retrato ? `<img class="pic" src="${d.retrato}" alt="Retrato">` : `<div class="pic">👤</div>`}</div>
+        <div class="retrato">${d.retrato ? `<img loading="lazy" decoding="async" class="pic" src="${d.retrato}" alt="Retrato">` : `<div class="pic">${ico("user")}</div>`}</div>
         <div class="info">
           <div>
             ${linha("", "Nome", dash(nome))}${linha("", "Idade", dash(i.idade))}${linha("", "Altura", dash(i.altura))}
           </div>
           <div>
-            ${linha("★", "Fama", dash(i.fama))}${linha("♥", "HP", dash(i.hp), "rosa")}${linha("$", "Dinheiro", dash(i.money), "verde")}
-            ${linha("🧠", "Sanidade", dash(i.sanidade) + (i.sanidade === "" || i.sanidade == null ? "" : "%"), "rosa")}
+            ${linha("star", "Fama", dash(i.fama))}${linha("heart", "HP", dash(i.hp), "rosa")}${linha("coin", "Dinheiro", dash(i.money), "verde")}
+            ${linha("brain", "Sanidade", dash(i.sanidade) + (i.sanidade === "" || i.sanidade == null ? "" : "%"), "rosa")}
           </div>
         </div>
         </div>
@@ -93,13 +95,14 @@ function render() {
       <div class="aba"><i>◎</i>Dom</div>
       <div class="corpo">
         ${(() => {
-          const lista = [{ nome: dm.nome, categorias: dm.categorias }].concat(d.domsExtra.filter((x) => x.nome || x.categorias));
+          const lista = [{ nome: dm.nome, categorias: dm.categorias, image: dm.image }].concat(d.domsExtra.filter((x) => x.nome || x.categorias || x.image));
           const varios = lista.length > 1;
           return lista.map((x, k) => `<div class="dom-card${k ? " extra" : ""}">
             ${varios ? `<div class="dom-card-head"><span class="dom-chip">Dom ${k + 1}</span></div>` : ""}
             <div class="dom">${linha("", "Dom", dash(x.nome))}${linha("", "Categorias", dash(x.categorias))}</div>
+            ${x.image ? `<img loading="lazy" decoding="async" class="si-img dom-img" data-zoom src="${x.image}" alt="${esc(x.nome || "Dom")}">` : ""}
           </div>`).join("") + `<div class="dom dom-edom">
-            ${linha("🌀", "EDOM", dash(dm.edom) + " / " + dash(dm.edomMax), "azul")}
+            ${linha("edom", "EDOM", dash(dm.edom) + " / " + dash(dm.edomMax), "azul")}
             ${barraEdom(dm.edom, dm.edomMax)}
             ${varios ? `<p class="hint dom-edom-nota">A EDOM é uma reserva só, usada por todos os seus doms.</p>` : ""}
           </div>`;
@@ -108,12 +111,12 @@ function render() {
     </section>
 
     <section class="bloco">
-      <div class="aba"><i>📈</i>Status</div>
+      <div class="aba"><i>${ico("trend")}</i>Status</div>
       <div class="corpo"><div class="status">${STATUS.map((s) => linha(s[2], s[1], dash(d.status[s[0]]))).join("")}</div></div>
     </section>
 
     <section class="bloco">
-      <div class="aba"><i>🎒</i>Mochila</div>
+      <div class="aba"><i>${ico("bag")}</i>Mochila</div>
       <div class="corpo">
         <div class="weight-summary">${resumoEspaco(d.inventario)}</div>
         ${itens.length ? `<div class="inv-card-list">${d.inventario.map((it, k) => (String(it.name).trim() ? cartaoItem(it, k) : "")).join("")}</div>` : `<p class="hint" style="margin-top:1rem">Mochila vazia.</p>`}
@@ -123,20 +126,20 @@ function render() {
     <section class="bloco">
       <div class="aba"><i>✦</i>Habilidades</div>
       <div class="corpo">
-        ${habs.length ? `<div class="sheet-item-list">${habs.map((h) => `<div class="sheet-item"><div class="si-head"><span class="si-name">${esc(h.nome || "Sem nome")}</span>${h.custo !== "" && h.custo != null ? `<span class="si-meta">${esc(h.custo)} EDOM</span>` : ""}</div>${h.image ? `<img class="si-img" data-zoom src="${h.image}" alt="${esc(h.nome || "Habilidade")}">` : ""}${h.desc ? `<p>${esc(h.desc)}</p>` : ""}</div>`).join("")}</div>` : `<p class="hint" style="margin:0">Nenhuma habilidade.</p>`}
+        ${habs.length ? `<div class="sheet-item-list">${habs.map((h) => `<div class="sheet-item"><div class="si-head"><span class="si-name">${esc(h.nome || "Sem nome")}</span>${h.custo !== "" && h.custo != null ? `<span class="si-meta">${esc(h.custo)} EDOM</span>` : ""}</div>${h.image ? `<img loading="lazy" decoding="async" class="si-img" data-zoom src="${h.image}" alt="${esc(h.nome || "Habilidade")}">` : ""}${h.desc ? `<p>${esc(h.desc)}</p>` : ""}</div>`).join("")}</div>` : `<p class="hint" style="margin:0">Nenhuma habilidade.</p>`}
       </div>
     </section>
 
     <section class="bloco">
-      <div class="aba"><i>🔒</i>Habilidades passivas</div>
+      <div class="aba"><i>${ico("lock")}</i>Habilidades passivas</div>
       <div class="corpo">
-        ${pass.length ? `<div class="sheet-item-list">${pass.map((h) => `<div class="sheet-item"><div class="si-head"><span class="si-name">${esc(h.nome || "Sem nome")}</span></div>${h.image ? `<img class="si-img" data-zoom src="${h.image}" alt="${esc(h.nome || "Habilidade")}">` : ""}${h.desc ? `<p>${esc(h.desc)}</p>` : ""}</div>`).join("")}</div>` : `<p class="hint" style="margin:0">Nenhuma habilidade passiva.</p>`}
+        ${pass.length ? `<div class="sheet-item-list">${pass.map((h) => `<div class="sheet-item"><div class="si-head"><span class="si-name">${esc(h.nome || "Sem nome")}</span></div>${h.image ? `<img loading="lazy" decoding="async" class="si-img" data-zoom src="${h.image}" alt="${esc(h.nome || "Habilidade")}">` : ""}${h.desc ? `<p>${esc(h.desc)}</p>` : ""}</div>`).join("")}</div>` : `<p class="hint" style="margin:0">Nenhuma habilidade passiva.</p>`}
       </div>
     </section>
 
     <section class="bloco">
-      <div class="aba"><i>👤</i>Aparência</div>
-      <div class="corpo">${d.retrato ? `<div class="apar-view"><img class="apar-pic" data-zoom src="${d.retrato}" alt="${esc(nome)}"></div>` : ""}${d.aparencia.trim() ? `<p class="sheet-text">${esc(d.aparencia)}</p>` : `<p class="hint" style="margin:0">Sem descrição.</p>`}</div>
+      <div class="aba"><i>${ico("user")}</i>Aparência</div>
+      <div class="corpo">${d.retrato ? `<div class="apar-view"><img loading="lazy" decoding="async" class="apar-pic" data-zoom src="${d.retrato}" alt="${esc(nome)}"></div>` : ""}${d.aparencia.trim() ? `<p class="sheet-text">${esc(d.aparencia)}</p>` : `<p class="hint" style="margin:0">Sem descrição.</p>`}</div>
     </section>
   </div>`;
 
@@ -148,15 +151,15 @@ function render() {
 async function usar(i, btn) {
   const it = data.inventario[i];
   if (!it || it.qty <= 0) return;
-  if (!confirm("Usar 1 unidade de \"" + it.name + "\"?" + (it.effectDesc ? "\n\nEfeito: " + it.effectDesc : ""))) return;
+  if (!await confirmar("Usar 1 unidade de \"" + it.name + "\"?" + (it.effectDesc ? "\n\nEfeito: " + it.effectDesc : ""))) return;
   btn.disabled = true;
   it.qty -= 1;
   try {
     await updateDoc(doc(db, "fichas", id), { inventario: data.inventario, updatedAt: serverTimestamp() });
-    render();
+    render(); aviso("Usou 1 unidade de " + it.name + ".", "ok");
   } catch (e) {
     it.qty += 1; btn.disabled = false;
-    alert("Não foi possível salvar (" + (e.code || e.message) + ").");
+    aviso("Não foi possível salvar (" + (e.code || e.message) + ").");
   }
 }
 

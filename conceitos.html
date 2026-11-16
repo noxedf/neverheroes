@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<script>try{var l=JSON.parse(localStorage.getItem('nh-leitura')||'{}');if(l.t)document.documentElement.dataset.tema=l.t;if(l.s)document.documentElement.style.fontSize=l.s+'%'}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Conceitos | Never Heroes</title>
 <meta name="description" content="Never Heroes: um RPG de dons, EDOM e semi-deuses.">
@@ -10,7 +11,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="images/icon.png">
 <link rel="apple-touch-icon" href="images/icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Never Heroes">
 <meta property="og:title" content="Never Heroes: Conceitos">
@@ -185,6 +186,15 @@
 <script src="js/main.js"></script>
 <script type="module">
 import { buildTopbar } from "./js/topbar.js";
+import { ico } from "./js/icons.js";
+const IC = { dom: "ring", edom: "edom", origens: "user", limite: "shield", fusao: "spark", categorias: "box", evolucao: "trend", semideus: "star", regra: "die" };
+const secoes = document.querySelectorAll("main section[id]");
+secoes.forEach((s) => { const h = s.querySelector("h2"); if (h && IC[s.id]) h.insertAdjacentHTML("afterbegin", ico(IC[s.id], "h2i")); });
+const toc = document.createElement("aside"); toc.className = "toc"; toc.setAttribute("aria-label", "Índice da página");
+toc.innerHTML = [...document.querySelectorAll("nav a[href^='#']")].map((a) => '<a href="' + a.getAttribute("href") + '">' + a.textContent + "</a>").join("");
+document.body.append(toc);
+const ioToc = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) toc.querySelectorAll("a").forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id)); }), { rootMargin: "-45% 0px -50% 0px" });
+secoes.forEach((s) => ioToc.observe(s));
 
 const mundo = { rotulo: "Mundo", links: [{ id: "conceitos", texto: "Conceitos", href: "conceitos.html" }] };
 const base = { home: "index.html", subtitulo: "Conceitos", ativa: "conceitos", flow: true };
@@ -211,5 +221,6 @@ try {
   });
 } catch (e) { resolvido = true; clearTimeout(plano); visitante(); }
 </script>
+<script type="module" src="js/ui.js"></script>
 </body>
 </html>

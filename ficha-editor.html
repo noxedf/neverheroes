@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<script>try{var l=JSON.parse(localStorage.getItem('nh-leitura')||'{}');if(l.t)document.documentElement.dataset.tema=l.t;if(l.s)document.documentElement.style.fontSize=l.s+'%'}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Editar ficha | Never Heroes</title>
 <meta name="theme-color" content="#0e0e10">
@@ -9,7 +10,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="images/icon.png">
 <link rel="apple-touch-icon" href="images/icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/app.css">
 <link rel="stylesheet" href="css/topbar.css">
 <link rel="stylesheet" href="css/refino.css">
@@ -37,10 +38,10 @@
               <div class="l2"><span>Altura</span><input id="f-altura" type="text" data-k="info.altura" maxlength="20" placeholder="—" aria-label="Altura"></div>
             </div>
             <div>
-              <div class="l2"><span><i class="ic">★</i>Fama</span><input id="f-fama" type="number" data-k="info.fama" placeholder="0" aria-label="Fama"></div>
-              <div class="l2"><span><i class="ic rosa">♥</i>HP</span><input id="f-hp" type="number" data-k="info.hp" placeholder="2d20" aria-label="HP"><button type="button" class="dado" data-roll="2d20" data-alvo="info.hp" title="Rolar 2d20">🎲</button></div>
-              <div class="l2"><span><i class="ic verde">$</i>Dinheiro</span><input id="f-money" type="number" data-k="info.money" placeholder="00" aria-label="Dinheiro"></div>
-              <div class="l2"><span><i class="ic rosa">🧠</i>Sanidade</span><input id="f-san" type="number" data-k="info.sanidade" min="0" max="100" placeholder="100" aria-label="Sanidade"><b class="suf">%</b></div>
+              <div class="l2"><span><i class="ic" data-i="star"></i>Fama</span><input id="f-fama" type="number" data-k="info.fama" placeholder="0" aria-label="Fama"></div>
+              <div class="l2"><span><i class="ic rosa" data-i="heart"></i>HP</span><input id="f-hp" type="number" data-k="info.hp" placeholder="2d20" aria-label="HP"><button type="button" class="dado" data-roll="2d20" data-alvo="info.hp" title="Rolar 2d20" aria-label="Rolar 2d20"><i data-i="die"></i></button></div>
+              <div class="l2"><span><i class="ic verde" data-i="coin"></i>Dinheiro</span><input id="f-money" type="number" data-k="info.money" placeholder="00" aria-label="Dinheiro"></div>
+              <div class="l2"><span><i class="ic rosa" data-i="brain"></i>Sanidade</span><input id="f-san" type="number" data-k="info.sanidade" min="0" max="100" placeholder="100" aria-label="Sanidade"><b class="suf">%</b></div>
             </div>
           </div>
         </div>
@@ -56,11 +57,12 @@
               <div class="l2"><span>Dom</span><input id="f-dom" type="text" data-k="dom.nome" maxlength="80" placeholder="—" aria-label="Dom"></div>
               <div class="l2"><span>Categorias</span><input id="f-cat" type="text" data-k="dom.categorias" maxlength="120" placeholder="—" aria-label="Categorias"></div>
             </div>
+            <div id="domImgPrincipal"></div>
           </div>
           <div id="domsExtra"></div>
           <button type="button" class="btn-add" id="btnAddDom"><i aria-hidden="true">+</i> Adicionar outro dom</button>
           <div class="dom dom-edom">
-            <div class="l2 edom"><span><i class="ic azul">🌀</i>EDOM</span><input id="f-edom" type="number" data-k="dom.edom" min="0" aria-label="EDOM atual"><b class="suf">/</b><input id="f-edommax" type="number" data-k="dom.edomMax" min="0" aria-label="EDOM máxima"></div>
+            <div class="l2 edom"><span><i class="ic azul" data-i="edom"></i>EDOM</span><input id="f-edom" type="number" data-k="dom.edom" min="0" aria-label="EDOM atual"><b class="suf">/</b><input id="f-edommax" type="number" data-k="dom.edomMax" min="0" aria-label="EDOM máxima"></div>
             <div class="barra-edom" aria-hidden="true"><i id="barEdom"></i></div>
             <p class="hint dom-edom-nota" id="notaEdom" hidden>A EDOM é uma reserva só, usada por todos os seus doms.</p>
           </div>
@@ -69,16 +71,16 @@
 
       <!-- STATUS -->
       <section class="bloco">
-        <div class="aba"><i>📈</i>Status</div>
+        <div class="aba"><i data-i="trend"></i>Status</div>
         <div class="corpo">
-          <p class="hint" style="margin:0 0 .6rem">Role 1d20 em cada status (🎲) ou digite o valor.</p>
+          <p class="hint" style="margin:0 0 .6rem">Role 1d20 em cada status (botão do dado) ou digite o valor.</p>
           <div class="status" id="status"></div>
         </div>
       </section>
 
       <!-- MOCHILA -->
       <section class="bloco">
-        <div class="aba"><i>🎒</i>Mochila</div>
+        <div class="aba"><i data-i="bag"></i>Mochila</div>
         <div class="corpo">
           <p class="hint" style="margin:0 0 .8rem">Cada item ocupa espaço (por unidade) e a quantidade multiplica esse espaço. A mochila comporta 30; uma Mochila equipada aumenta o limite.</p>
           <div id="invResumo" class="weight-summary"></div>
@@ -97,7 +99,7 @@
 
       <!-- PASSIVAS -->
       <section class="bloco">
-        <div class="aba"><i>🔒</i>Habilidades passivas</div>
+        <div class="aba"><i data-i="lock"></i>Habilidades passivas</div>
         <div class="corpo">
           <div class="lista-itens" id="passivas"></div>
           <button type="button" class="btn mini sec" data-add="passivas">+ Passiva</button>
@@ -106,7 +108,7 @@
 
       <!-- APARÊNCIA -->
       <section class="bloco">
-        <div class="aba"><i>👤</i>Aparência</div>
+        <div class="aba"><i data-i="user"></i>Aparência</div>
         <div class="corpo">
           <div class="apar-img">
             <div id="retratoBox" class="apar-view"></div>
@@ -123,7 +125,7 @@
 
     <div id="erro"></div>
     <div class="save-bar">
-      <button type="submit" class="btn" id="btnSalvar">💾 Salvar ficha</button>
+      <button type="submit" class="btn" id="btnSalvar">Salvar ficha</button>
       <a class="btn sec" id="btnCancelar" href="fichas.html">Cancelar</a>
       <span class="salvo" id="salvo" aria-live="polite"></span>
       <button type="button" class="btn danger mini" id="btnExcluir">Excluir ficha</button>
@@ -132,5 +134,6 @@
 </main>
 
 <script type="module" src="js/ficha-editor.js"></script>
+<script type="module" src="js/ui.js"></script>
 </body>
 </html>

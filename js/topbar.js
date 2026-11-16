@@ -1,3 +1,4 @@
+import { ico } from "./icons.js";
 // Barra superior (estilo Heartsoul). Não depende do Firebase, então serve também ao Conceitos.
 function h(tag, props, ...kids) {
   const e = document.createElement(tag);
@@ -11,9 +12,10 @@ function h(tag, props, ...kids) {
   return e;
 }
 
-const avatar = (user, cls) => user.avatar
-  ? h("img", { class: cls, src: user.avatar, alt: "" })
-  : h("span", { class: cls + " ph", text: "👤" });
+const avatar = (user, cls) => {
+  if (user.avatar) return h("img", { class: cls, src: user.avatar, alt: "" });
+  const s = h("span", { class: cls + " ph" }); s.innerHTML = ico("user"); return s;
+};
 
 /* opts: { home, subtitulo, ativa, grupos:[{rotulo, links:[{id,texto,href}]}],
            user:{nome, avatar, papel, mestre}|null, onSair, entrar, flow } */

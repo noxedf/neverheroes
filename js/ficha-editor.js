@@ -1,5 +1,7 @@
 import { db, guard, renderTopbar, el, resizeImage, prepararImagem } from "./fb.js";
 import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { aviso, confirmar } from "./ui.js";
+import { ico, pintarIcones } from "./icons.js";
 import { STATUS, esc, num, fmt, normalizar, itemVazio, resumoEspaco, tipoRotulo, domExtraVazio } from "./ficha-shared.js";
 
 const $ = (id) => document.getElementById(id);
@@ -37,15 +39,21 @@ function marcarSujo() {
   sujo = true; $("salvo").className = "salvo pend"; $("salvo").textContent = "Alterações não salvas";
 }
 addEventListener("beforeunload", (e) => { if (sujo) { e.preventDefault(); e.returnValue = ""; } });
-$("btnCancelar").addEventListener("click", (e) => { if (sujo && !confirm("Descartar as alterações não salvas?")) e.preventDefault(); else sujo = false; });
+$("btnCancelar").addEventListener("click", async (e) => {
+  if (!sujo) return;
+  e.preventDefault();
+  if (await confirmar("Descartar as alterações não salvas?", { sim: "Descartar", perigo: true })) { sujo = false; location.href = verUrl; }
+});
 
 /* ---------- campos simples ---------- */
+const icone = (n) => { const i = el("i", { class: "ic" }); i.innerHTML = ico(n); return i; };
 STATUS.forEach((s) => {
   $("status").append(el("div", { class: "l2" },
-    el("span", {}, el("i", { class: "ic", text: s[2] }), s[1]),
+    el("span", {}, icone(s[2]), s[1]),
     el("input", { id: "st-" + s[0], type: "number", placeholder: "1d20", "aria-label": s[1], "data-k": "status." + s[0] }),
-    el("button", { type: "button", class: "dado", title: "Rolar 1d20", "data-roll": "1d20", "data-alvo": "status." + s[0], text: "🎲" })));
+    el("button", { type: "button", class: "dado", title: "Rolar 1d20", "data-roll": "1d20", "data-alvo": "status." + s[0], "data-i": "die", "aria-label": "Rolar 1d20" })));
 });
+pintarIcones();
 document.querySelectorAll("[data-k]").forEach((e) => { const v = getPath(data, e.dataset.k); e.value = v == null ? "" : v; });
 
 function barEdom() {
@@ -55,7 +63,7 @@ function barEdom() {
 barEdom();
 
 function pintarRetrato() {
-  $("retratoBox").replaceChildren(data.retrato ? el("img", { class: "apar-pic", src: data.retrato, alt: "Imagem do personagem" }) : el("div", { class: "apar-pic ph", text: "👤 Sem imagem" }));
+  $("retratoBox").replaceChildren(data.retrato ? el("img", { class: "apar-pic", src: data.retrato, alt: "Imagem do personagem" }) : el("div", { class: "apar-pic ph", text: "Sem imagem" }));
 }
 pintarRetrato();
 
@@ -82,10 +90,33 @@ $("tela").addEventListener("click", (e) => {
 
 $("inRetrato").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0]; if (!f) return;
-  try { data.retrato = await prepararImagem(f, 1100, 450); pintarRetrato(); marcarSujo(); } catch (err) { alert(err.message); }
+  try { data.retrato = await prepararImagem(f, 1100, 450); pintarRetrato(); marcarSujo(); } catch (err) { aviso(err.message); }
   e.target.value = "";
 });
 $("btnRetratoRm").addEventListener("click", () => { data.retrato = ""; pintarRetrato(); marcarSujo(); });
+
+/* ---------- imagem de visualização do dom ---------- */
+function blocoImagemDom(obj) {
+  const box = el("div", { class: "hab-img dom-img-edit" });
+  const pintar = () => {
+    const inp = el("input", { type: "file", accept: "image/*", "aria-label": "Imagem ou GIF do dom" });
+    inp.addEventListener("change", async () => {
+      const f = inp.files && inp.files[0]; if (!f) return;
+      try { obj.image = await prepararImagem(f, 700, 400); pintar(); marcarSujo(); } catch (err) { aviso(err.message); }
+      inp.value = "";
+    });
+    const ctl = el("div", { class: "hab-ctl" }, el("span", { class: "lbl", text: "Imagem ou GIF de visualização do dom" }), inp);
+    if (obj.image) {
+      const x = el("button", { type: "button", class: "btn mini sec", text: "Remover imagem" });
+      x.addEventListener("click", () => { obj.image = ""; pintar(); marcarSujo(); });
+      ctl.append(x);
+    }
+    box.replaceChildren(obj.image ? el("img", { class: "hab-prev", src: obj.image, alt: "" }) : el("div", { class: "hab-prev ph", text: "Sem imagem" }), ctl);
+  };
+  pintar();
+  return box;
+}
+$("domImgPrincipal").append(blocoImagemDom(data.dom));
 
 /* ---------- doms extras ---------- */
 const MAX_DOMS_EXTRA = 8;
@@ -100,15 +131,16 @@ function renderDoms(focoNovo) {
     const cat = el("input", { type: "text", maxlength: "120", placeholder: "—", "aria-label": "Categorias do dom " + (i + 2) });
     cat.value = d.categorias; cat.addEventListener("input", () => { d.categorias = cat.value; marcarSujo(); });
     const rm = el("button", { type: "button", class: "skill-remove dom-rm", "aria-label": "Remover dom " + (i + 2), title: "Remover este dom", text: "✕" });
-    rm.addEventListener("click", () => {
-      if ((d.nome.trim() || d.categorias.trim()) && !confirm("Remover o dom \"" + (d.nome.trim() || "Dom " + (i + 2)) + "\"?")) return;
+    rm.addEventListener("click", async () => {
+      if ((d.nome.trim() || d.categorias.trim() || d.image) && !await confirmar("Remover o dom \"" + (d.nome.trim() || "Dom " + (i + 2)) + "\"?")) return;
       data.domsExtra.splice(i, 1); renderDoms(); marcarSujo();
     });
     lista.append(el("div", { class: "dom-card extra" },
       el("div", { class: "dom-card-head" }, el("span", { class: "dom-chip", text: "Dom " + (i + 2) }), rm),
       el("div", { class: "dom" },
         el("div", { class: "l2" }, el("span", { text: "Dom" }), nome),
-        el("div", { class: "l2" }, el("span", { text: "Categorias" }), cat))));
+        el("div", { class: "l2" }, el("span", { text: "Categorias" }), cat)),
+      blocoImagemDom(d)));
   });
   $("btnAddDom").hidden = data.domsExtra.length >= MAX_DOMS_EXTRA;
   if (focoNovo) { const ins = lista.querySelectorAll(".dom-card.extra input[type=text]"); if (ins.length >= 2) ins[ins.length - 2].focus(); }
@@ -135,12 +167,12 @@ function blocoItem(it, i, total) {
     </div>
     <div class="inv-item-acc${aberto[i] === false ? " collapsed" : ""}">
       <button type="button" class="inv-item-acc-head" data-acc="${i}" aria-expanded="${aberto[i] !== false}">
-        <span>🗂️</span><span class="iah-title">Tipo, imagem e descrição</span><span class="iah-chevron">▾</span>
+        <span>${ico("box")}</span><span class="iah-title">Tipo, imagem e descrição</span><span class="iah-chevron">▾</span>
       </button>
       <div class="inv-item-acc-body">
         <div class="item-type-row">
-          <label class="item-type-chip"><input type="checkbox" data-tipo="consumivel" data-i="${i}" ${it.tipo === "consumivel" ? "checked" : ""} ${it.tipo === "mochila" ? "disabled" : ""}> 🧪 Consumível</label>
-          <label class="item-type-chip backpack"><input type="checkbox" data-tipo="mochila" data-i="${i}" ${it.tipo === "mochila" ? "checked" : ""} ${it.tipo === "consumivel" ? "disabled" : ""}> 🎒 Mochila</label>
+          <label class="item-type-chip"><input type="checkbox" data-tipo="consumivel" data-i="${i}" ${it.tipo === "consumivel" ? "checked" : ""} ${it.tipo === "mochila" ? "disabled" : ""}> ${ico("flask")} Consumível</label>
+          <label class="item-type-chip backpack"><input type="checkbox" data-tipo="mochila" data-i="${i}" ${it.tipo === "mochila" ? "checked" : ""} ${it.tipo === "consumivel" ? "disabled" : ""}> ${ico("bag")} Mochila</label>
         </div>
         ${it.tipo === "consumivel" ? `<div class="item-detail inv-effect-fields">
           <input type="text" maxlength="40" data-f="effectValue" data-i="${i}" placeholder="Dado/valor (ex.: 1d8+2)" value="${esc(it.effectValue)}">
@@ -148,14 +180,14 @@ function blocoItem(it, i, total) {
         </div>` : ""}
         ${it.tipo === "mochila" ? `<div class="item-detail inv-backpack-fields">
           <label class="item-equip-toggle"><input type="checkbox" data-equip="${i}" ${it.backpackEquipped ? "checked" : ""}> <span>Equipada agora</span></label>
-          <label class="inv-backpack-bonus"><span>🎒 Espaço extra</span><input type="number" min="0" step="0.5" data-f="backpackBonus" data-i="${i}" value="${esc(it.backpackBonus)}"></label>
+          <label class="inv-backpack-bonus"><span>${ico("bag")} Espaço extra</span><input type="number" min="0" step="0.5" data-f="backpackBonus" data-i="${i}" value="${esc(it.backpackBonus)}"></label>
           <p class="hint" style="margin:.4rem 0 0">Soma ao limite de 30 enquanto estiver equipada. O espaço da própria mochila continua contando.</p>
         </div>` : ""}
         <div class="inv-extra-row">
           <div class="inv-image-field">
             <span class="lbl">Imagem do item</span>
             <div class="inv-image-uploader">
-              ${it.image ? `<img src="${it.image}" alt="" class="inv-image-preview">` : `<div class="inv-image-placeholder">📦</div>`}
+              ${it.image ? `<img src="${it.image}" alt="" class="inv-image-preview">` : `<div class="inv-image-placeholder">${ico("box")}</div>`}
               <div class="inv-image-controls">
                 <input type="file" accept="image/*" data-img="${i}" aria-label="Imagem do item">
                 ${it.image ? `<button type="button" class="btn mini sec" data-img-rm="${i}">Remover imagem</button>` : ""}
@@ -204,14 +236,14 @@ box.addEventListener("change", async (e) => {
   } else if (t.dataset.img !== undefined) {
     const f = t.files && t.files[0]; if (!f) return;
     try { data.inventario[+t.dataset.img].image = await resizeImage(f, 240); renderInv(); marcarSujo(); }
-    catch (err) { alert(err.message); }
+    catch (err) { aviso(err.message); }
   }
 });
-box.addEventListener("click", (e) => {
+box.addEventListener("click", async (e) => {
   const b = e.target.closest("button"); if (!b) return;
   if (b.dataset.rm !== undefined) {
     const i = +b.dataset.rm, it = data.inventario[i];
-    if (String(it.name).trim() && !confirm("Remover \"" + it.name + "\"?")) return;
+    if (String(it.name).trim() && !await confirmar("Remover \"" + it.name + "\"?")) return;
     data.inventario.splice(i, 1);
     if (!data.inventario.length) data.inventario.push(itemVazio());
     renderInv(); marcarSujo();
@@ -242,8 +274,8 @@ function renderLista(chave) {
     const t = el("textarea", { rows: "3", maxlength: "1500", placeholder: "Descrição", "aria-label": "Descrição" });
     t.value = it.desc || ""; t.addEventListener("input", () => { it.desc = t.value; marcarSujo(); });
     const rm = el("button", { type: "button", class: "btn mini danger rm", text: "Remover" });
-    rm.addEventListener("click", () => {
-      if (!confirm("Remover \"" + (it.nome || "este item") + "\"?")) return;
+    rm.addEventListener("click", async () => {
+      if (!await confirmar("Remover \"" + (it.nome || "este item") + "\"?")) return;
       data[chave].splice(i, 1); renderLista(chave); marcarSujo();
     });
     const imgBox = el("div", { class: "hab-img" });
@@ -252,7 +284,7 @@ function renderLista(chave) {
       const inp = el("input", { type: "file", accept: "image/*", "aria-label": "Imagem ou GIF" });
       inp.addEventListener("change", async () => {
         const f = inp.files && inp.files[0]; if (!f) return;
-        try { it.image = await prepararImagem(f, 700, 400); pintar(); marcarSujo(); } catch (err) { alert(err.message); }
+        try { it.image = await prepararImagem(f, 700, 400); pintar(); marcarSujo(); } catch (err) { aviso(err.message); }
         inp.value = "";
       });
       ctl.append(el("span", { class: "lbl", text: "Imagem ou GIF (visualização)" }), inp);
@@ -261,7 +293,7 @@ function renderLista(chave) {
         x.addEventListener("click", () => { it.image = ""; pintar(); marcarSujo(); });
         ctl.append(x);
       }
-      imgBox.replaceChildren(it.image ? el("img", { class: "hab-prev", src: it.image, alt: "" }) : el("div", { class: "hab-prev ph", text: "🖼️" }), ctl);
+      imgBox.replaceChildren(it.image ? el("img", { class: "hab-prev", src: it.image, alt: "" }) : el("div", { class: "hab-prev ph", text: "Sem imagem" }), ctl);
     };
     pintar();
     w.append(t, imgBox, rm); lista.append(w);
@@ -281,7 +313,7 @@ async function salvar() {
   const itens = data.inventario.filter((i) => String(i.name).trim() || i.image || String(i.description).trim());
   const docData = {
     info: data.info, dom: data.dom,
-    domsExtra: data.domsExtra.filter((d) => d.nome.trim() || d.categorias.trim()), status: data.status,
+    domsExtra: data.domsExtra.filter((d) => d.nome.trim() || d.categorias.trim() || d.image), status: data.status,
     inventario: itens.length ? itens : [], habilidades: data.habilidades, passivas: data.passivas,
     aparencia: data.aparencia, retrato: data.retrato,
     nome: String(data.info.nome || "").trim() || "Sem nome",
@@ -302,7 +334,7 @@ $("tela").addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target
 $("tela").addEventListener("submit", (e) => { e.preventDefault(); salvar(); });
 
 $("btnExcluir").addEventListener("click", async () => {
-  if (!confirm("Excluir esta ficha para sempre?")) return;
+  if (!(await confirmar("Excluir esta ficha para sempre?", { sim: "Excluir", perigo: true }))) return;
   try { await deleteDoc(doc(db, "fichas", id)); sujo = false; location.replace(dono ? "fichas.html" : "master.html"); }
   catch (e) { mostrarErro("Não foi possível excluir (" + (e.code || e.message) + ")."); }
 });
