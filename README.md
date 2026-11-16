@@ -12,7 +12,7 @@ images/banner.png   (imagem de pré-visualização do link, 1200x630)
 images/icon.svg     (ícone do site, vetorial)
 images/icon.png     (ícone do site, 512x512)
 index.html, conceitos.html, fichas.html, ficha-view.html, ficha-editor.html, perfil.html, master.html  (contas e fichas)
-css/app.css, css/topbar.css, css/refino.css (ajustes de celular e design), js/fb.js, js/topbar.js, js/ficha-shared.js, js/ficha-view.js, js/ficha-editor.js
+css/app.css, css/topbar.css, css/refino.css (ajustes de celular, design e tema claro), js/fb.js, js/topbar.js, js/ficha-shared.js, js/ficha-view.js, js/ficha-editor.js
 js/firebase-config.js  (suas chaves do Firebase)
 firestore.rules     (regras de segurança do banco)
 ```

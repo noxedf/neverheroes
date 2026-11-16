@@ -190,11 +190,6 @@ import { ico } from "./js/icons.js";
 const IC = { dom: "ring", edom: "edom", origens: "user", limite: "shield", fusao: "spark", categorias: "box", evolucao: "trend", semideus: "star", regra: "die" };
 const secoes = document.querySelectorAll("main section[id]");
 secoes.forEach((s) => { const h = s.querySelector("h2"); if (h && IC[s.id]) h.insertAdjacentHTML("afterbegin", ico(IC[s.id], "h2i")); });
-const toc = document.createElement("aside"); toc.className = "toc"; toc.setAttribute("aria-label", "Índice da página");
-toc.innerHTML = [...document.querySelectorAll("nav a[href^='#']")].map((a) => '<a href="' + a.getAttribute("href") + '">' + a.textContent + "</a>").join("");
-document.body.append(toc);
-const ioToc = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) toc.querySelectorAll("a").forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id)); }), { rootMargin: "-45% 0px -50% 0px" });
-secoes.forEach((s) => ioToc.observe(s));
 
 const mundo = { rotulo: "Mundo", links: [{ id: "conceitos", texto: "Conceitos", href: "conceitos.html" }] };
 const base = { home: "index.html", subtitulo: "Conceitos", ativa: "conceitos", flow: true };

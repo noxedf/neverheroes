@@ -25,7 +25,8 @@ const data = normalizar(raw);
 const verUrl = "ficha-view.html?id=" + encodeURIComponent(id);
 renderTopbar(profile, dono ? "fichas" : "master", "Editor de ficha");
 $("btnCancelar").href = verUrl;
-$("dono").textContent = (dono ? "Editor de ficha" : "Editando a ficha de " + (raw.ownerName || "outro jogador")) + " · preencha os campos e use o botão Salvar ficha no fim da página.";
+$("dono").textContent = dono ? "Editor de ficha" : "Editando a ficha de " + (raw.ownerName || "outro jogador");
+$("dono").append(el("span", { class: "dono-dica", text: " · preencha os campos e use o botão Salvar ficha no fim da página." }));
 $("carregando").hidden = true;
 $("tela").hidden = false;
 
@@ -393,11 +394,15 @@ $("btnExcluir").addEventListener("click", async () => {
   catch (e) { mostrarErro("Não foi possível excluir (" + (e.code || e.message) + ")."); }
 });
 
-/* ---------- seções recolhíveis, atalhos e itens compactos ---------- */
+/* ---------- seções recolhíveis e itens compactos ---------- */
 const CHAVE = "nh-ed-fechadas:" + id;
 let fechadas = [];
-try { fechadas = JSON.parse(localStorage.getItem(CHAVE) || "[]"); } catch (e) { fechadas = []; }
 const SEC = ["info", "dom", "status", "mochila", "habilidades", "passivas", "aparencia"];
+const celular = matchMedia("(max-width:640px)");
+try {
+  const salvo = localStorage.getItem(CHAVE);
+  fechadas = salvo === null ? (celular.matches ? SEC.slice(1) : []) : JSON.parse(salvo);
+} catch (e) { fechadas = []; }
 const plural = (n, a, b) => n + " " + (n === 1 ? a : b);
 const tem = (v) => v !== "" && v != null;
 function textoResumo(k) {
@@ -412,11 +417,8 @@ function textoResumo(k) {
 }
 const guardar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(fechadas)); } catch (e) { /* sem armazenamento */ } };
 const blocos = [...document.querySelectorAll(".ficha > .bloco")];
-const nav = el("nav", { class: "ed-nav", "aria-label": "Seções da ficha" });
-const chips = el("div", { class: "ed-chips" });
 blocos.forEach((b, i) => {
   const k = SEC[i], aba = b.querySelector(".aba"), corpo = b.querySelector(".corpo");
-  const rotulo = aba.lastChild.textContent.trim();
   b.id = "sec-" + k; corpo.id = "corpo-" + k; aba.setAttribute("aria-controls", corpo.id);
   const res = el("p", { class: "resumo-sec" }); corpo.prepend(res);
   aba.append(el("span", { class: "aba-chev", "aria-hidden": "true", text: "▾" }));
@@ -428,21 +430,15 @@ blocos.forEach((b, i) => {
     if (fechar && j < 0) fechadas.push(k); else if (!fechar && j >= 0) fechadas.splice(j, 1);
     if (salvar) guardar();
   };
-  aba.addEventListener("click", () => b._set(!b.classList.contains("fechado")));
+  aba.addEventListener("click", () => {
+    const abrir = b.classList.contains("fechado");
+    b._set(!abrir);
+    if (abrir && celular.matches) setTimeout(() => { if (b.getBoundingClientRect().top < 0) b.scrollIntoView({ behavior: "smooth", block: "start" }); }, 30);
+  });
+  corpo.addEventListener("click", () => { if (b.classList.contains("fechado")) b._set(false); });
   aba.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); aba.click(); } });
   b._set(fechadas.includes(k), false);
-  const c = el("button", { type: "button", class: "ed-chip", text: rotulo });
-  c.addEventListener("click", () => { b._set(false); b.scrollIntoView({ behavior: "smooth", block: "start" }); });
-  chips.append(c);
 });
-const acoes = el("div", { class: "ed-acoes" });
-[["Recolher tudo", true], ["Expandir tudo", false]].forEach(([t, f]) => {
-  const x = el("button", { type: "button", class: "ed-tudo", text: t });
-  x.addEventListener("click", () => { blocos.forEach((b) => b._set(f, false)); fechadas = f ? SEC.slice() : []; guardar(); if (f) scrollTo({ top: 0, behavior: "smooth" }); });
-  acoes.append(x);
-});
-nav.append(chips, acoes);
-$("tela").insertBefore(nav, document.querySelector(".ficha"));
 const medirTopo = () => { const t = $("topbar"); document.documentElement.style.setProperty("--topo-h", (t ? t.offsetHeight : 0) + "px"); };
 medirTopo(); addEventListener("resize", medirTopo);
 
@@ -478,3 +474,14 @@ const taAp = document.querySelector('textarea[data-k="aparencia"]');
 const contAp = el("small", { class: "cont" }); taAp.after(contAp);
 const contarAp = () => { contAp.textContent = taAp.value.length + " / 3000"; };
 taAp.addEventListener("input", contarAp); contarAp();
+
+/* ---------- celular: barra de salvar enxuta ---------- */
+const barraSalvar = document.querySelector(".save-bar");
+const extraSalvar = el("div", { class: "save-extra" });
+barraSalvar.after(extraSalvar);
+function posicionarRodape() {
+  if (celular.matches) { extraSalvar.append($("btnCancelar"), tamEl, $("btnExcluir")); }
+  else { bCont.after($("btnCancelar")); $("salvo").after(tamEl); barraSalvar.append($("btnExcluir")); }
+}
+posicionarRodape();
+celular.addEventListener("change", posicionarRodape);

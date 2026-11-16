@@ -26,6 +26,7 @@ export function confirmar(msg, o = {}) {
 /* leitura */
 const K = "nh-leitura"; let st = {};
 try { st = JSON.parse(localStorage.getItem(K) || "{}"); } catch (e) { st = {}; }
+if (st.t === "pergaminho") st.t = "claro"; // nome antigo do tema claro
 function aplicar() {
   const d = document.documentElement;
   if (st.t) d.dataset.tema = st.t; else delete d.dataset.tema;
@@ -36,7 +37,7 @@ function aplicar() {
 }
 function leitura() {
   const w = document.createElement("div"); w.className = "leitura";
-  w.innerHTML = '<button type="button" class="leitura-btn" aria-expanded="false" aria-label="Opções de leitura">Aa</button><div class="leitura-painel" hidden><div class="lv-l">Tamanho do texto</div><div class="lv-r"><button type="button" class="btn mini sec" data-s="-10" aria-label="Diminuir texto">A−</button><b id="lvTam">100%</b><button type="button" class="btn mini sec" data-s="10" aria-label="Aumentar texto">A+</button></div><div class="lv-l">Tema</div><div class="lv-r"><button type="button" class="btn mini sec" data-tema-b="">Escuro</button><button type="button" class="btn mini sec" data-tema-b="pergaminho">Pergaminho</button></div></div>';
+  w.innerHTML = '<button type="button" class="leitura-btn" aria-expanded="false" aria-label="Opções de leitura">Aa</button><div class="leitura-painel" hidden><div class="lv-l">Tamanho do texto</div><div class="lv-r"><button type="button" class="btn mini sec" data-s="-10" aria-label="Diminuir texto">A−</button><b id="lvTam">100%</b><button type="button" class="btn mini sec" data-s="10" aria-label="Aumentar texto">A+</button></div><div class="lv-l">Tema</div><div class="lv-r"><button type="button" class="btn mini sec" data-tema-b="">Escuro</button><button type="button" class="btn mini sec" data-tema-b="claro">Claro</button></div></div>';
   const bt = w.querySelector(".leitura-btn"), pn = w.querySelector(".leitura-painel");
   bt.addEventListener("click", () => { pn.hidden = !pn.hidden; bt.setAttribute("aria-expanded", String(!pn.hidden)); });
   document.addEventListener("click", (e) => { if (!w.contains(e.target)) { pn.hidden = true; bt.setAttribute("aria-expanded", "false"); } });
