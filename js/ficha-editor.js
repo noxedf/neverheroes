@@ -33,8 +33,22 @@ $("tela").hidden = false;
 function getPath(o, p) { return p.split(".").reduce((a, k) => (a == null ? a : a[k]), o); }
 function setPath(o, p, v) { const ks = p.split("."); const last = ks.pop(); ks.reduce((a, k) => (a[k] = a[k] || {}), o)[last] = v; }
 
+const RASC = "nh-ed-rascunho:" + id;
+let versao = raw.updatedAt || null;
+const msDe = (t) => (t && t.toMillis ? t.toMillis() : 0);
+const tamEl = el("span", { class: "tam" });
+function corpoFicha() { return { info: data.info, dom: data.dom, domsExtra: data.domsExtra, status: data.status, inventario: data.inventario, habilidades: data.habilidades, passivas: data.passivas, aparencia: data.aparencia, retrato: data.retrato }; }
+function atualizarTam() { const kb = Math.round(JSON.stringify(corpoFicha()).length / 1024); tamEl.textContent = "Tamanho " + kb + " / 900 KB"; tamEl.classList.toggle("alto", kb > 720); }
+let tRasc;
+function agendarRascunho() {
+  clearTimeout(tRasc);
+  tRasc = setTimeout(() => { atualizarTam(); try { localStorage.setItem(RASC, JSON.stringify({ em: Date.now(), d: corpoFicha() })); } catch (e) { /* sem espaço */ } }, 800);
+}
+const limparRascunho = () => { clearTimeout(tRasc); try { localStorage.removeItem(RASC); } catch (e) { /* ok */ } };
+
 let sujo = false;
 function marcarSujo() {
+  agendarRascunho();
   if (sujo) return;
   sujo = true; $("salvo").className = "salvo pend"; $("salvo").textContent = "Alterações não salvas";
 }
@@ -42,8 +56,18 @@ addEventListener("beforeunload", (e) => { if (sujo) { e.preventDefault(); e.retu
 $("btnCancelar").addEventListener("click", async (e) => {
   if (!sujo) return;
   e.preventDefault();
-  if (await confirmar("Descartar as alterações não salvas?", { sim: "Descartar", perigo: true })) { sujo = false; location.href = verUrl; }
+  if (await confirmar("Descartar as alterações não salvas?", { sim: "Descartar", perigo: true })) { sujo = false; limparRascunho(); location.href = verUrl; }
 });
+
+/* ---------- rascunho salvo no aparelho ---------- */
+try {
+  const r = JSON.parse(localStorage.getItem(RASC) || "null");
+  if (r && r.d && JSON.stringify(r.d) !== JSON.stringify(corpoFicha())) {
+    const quando = new Date(r.em).toLocaleString("pt-BR");
+    if (await confirmar("Há um rascunho não salvo desta ficha (" + quando + "). Restaurar?", { sim: "Restaurar", nao: "Descartar" })) { Object.assign(data, normalizar({ ...raw, ...r.d })); marcarSujo(); }
+    else limparRascunho();
+  }
+} catch (e) { /* rascunho inválido */ }
 
 /* ---------- campos simples ---------- */
 const icone = (n) => { const i = el("i", { class: "ic" }); i.innerHTML = ico(n); return i; };
@@ -62,6 +86,13 @@ function barEdom() {
 }
 barEdom();
 
+function validar() {
+  const sn = data.info.sanidade, a = num(data.dom.edom, 0), m = num(data.dom.edomMax, 0);
+  $("f-san").classList.toggle("invalido", sn !== "" && sn != null && (sn < 0 || sn > 100));
+  $("f-edom").classList.toggle("invalido", m > 0 && a > m);
+}
+validar();
+
 function pintarRetrato() {
   $("retratoBox").replaceChildren(data.retrato ? el("img", { class: "apar-pic", src: data.retrato, alt: "Imagem do personagem" }) : el("div", { class: "apar-pic ph", text: "Sem imagem" }));
 }
@@ -72,6 +103,7 @@ $("tela").addEventListener("input", (e) => {
   if (!t.dataset.k) return;
   setPath(data, t.dataset.k, t.type === "number" ? (t.value === "" ? "" : Number(t.value)) : t.value);
   if (t.dataset.k.indexOf("dom.edom") === 0) barEdom();
+  validar();
   marcarSujo();
 });
 
@@ -153,7 +185,7 @@ $("btnAddDom").addEventListener("click", () => {
 
 /* ---------- mochila (modelo do Heartsoul) ---------- */
 const box = $("inventario");
-const aberto = {}; // acordeão: índices fechados
+const aberto = {}; // acordeão: índices abertos (por padrão ficam recolhidos)
 function resumo() { $("invResumo").innerHTML = resumoEspaco(data.inventario); }
 
 function blocoItem(it, i, total) {
@@ -165,8 +197,8 @@ function blocoItem(it, i, total) {
       <label class="inv-field"><span>Qtd.</span><input type="number" min="0" step="1" data-f="qty" data-i="${i}" value="${esc(it.qty)}"></label>
       <button type="button" class="skill-remove" data-rm="${i}" aria-label="Remover item" ${total <= 1 ? 'style="visibility:hidden"' : ""}>✕</button>
     </div>
-    <div class="inv-item-acc${aberto[i] === false ? " collapsed" : ""}">
-      <button type="button" class="inv-item-acc-head" data-acc="${i}" aria-expanded="${aberto[i] !== false}">
+    <div class="inv-item-acc${aberto[i] !== true ? " collapsed" : ""}">
+      <button type="button" class="inv-item-acc-head" data-acc="${i}" aria-expanded="${aberto[i] === true}">
         <span>${ico("box")}</span><span class="iah-title">Tipo, imagem e descrição</span><span class="iah-chevron">▾</span>
       </button>
       <div class="inv-item-acc-body">
@@ -200,7 +232,7 @@ function blocoItem(it, i, total) {
       </div>
     </div>
     <div class="inv-card-foot">
-      <span class="inv-card-kind">${tipoRotulo(it.tipo)}</span>
+      <span class="inv-card-kind">${tipoRotulo(it.tipo)}</span><button type="button" class="btn mini sec" data-dup="${i}">Duplicar</button>
       <span>Subtotal <b data-sub="${i}">${fmt(num(it.espaco, 0) * (parseInt(it.qty, 10) || 0))}</b></span>
     </div>
   </div>`;
@@ -247,12 +279,14 @@ box.addEventListener("click", async (e) => {
     data.inventario.splice(i, 1);
     if (!data.inventario.length) data.inventario.push(itemVazio());
     renderInv(); marcarSujo();
+  } else if (b.dataset.dup !== undefined) {
+    const i = +b.dataset.dup; data.inventario.splice(i + 1, 0, { ...data.inventario[i], backpackEquipped: false }); aberto[i + 1] = true; renderInv(); marcarSujo();
   } else if (b.dataset.imgRm !== undefined) {
     data.inventario[+b.dataset.imgRm].image = ""; renderInv(); marcarSujo();
   } else if (b.dataset.acc !== undefined) {
-    const i = +b.dataset.acc; aberto[i] = aberto[i] === false ? true : false; renderInv();
+    const i = +b.dataset.acc; aberto[i] = aberto[i] !== true; renderInv();
   } else if (b.hasAttribute("data-add-item")) {
-    data.inventario.push(itemVazio()); renderInv(true); marcarSujo();
+    data.inventario.push(itemVazio()); aberto[data.inventario.length - 1] = true; renderInv(true); marcarSujo();
   }
 });
 
@@ -296,7 +330,15 @@ function renderLista(chave) {
       imgBox.replaceChildren(it.image ? el("img", { class: "hab-prev", src: it.image, alt: "" }) : el("div", { class: "hab-prev ph", text: "Sem imagem" }), ctl);
     };
     pintar();
-    w.append(t, imgBox, rm); lista.append(w);
+    const cont = el("small", { class: "cont" });
+    const contar = () => { cont.textContent = t.value.length + " / 1500"; };
+    t.addEventListener("input", contar); contar();
+    const mover = (d) => { const j = i + d; if (j < 0 || j >= data[chave].length) return; [data[chave][i], data[chave][j]] = [data[chave][j], data[chave][i]]; renderLista(chave); marcarSujo(); };
+    const sobe = el("button", { type: "button", class: "btn mini sec", "aria-label": "Mover para cima", text: "↑" });
+    const desce = el("button", { type: "button", class: "btn mini sec", "aria-label": "Mover para baixo", text: "↓" });
+    sobe.disabled = i === 0; desce.disabled = i === data[chave].length - 1;
+    sobe.addEventListener("click", () => mover(-1)); desce.addEventListener("click", () => mover(1));
+    w.append(t, cont, imgBox, el("div", { class: "item-acoes" }, sobe, desce, rm)); lista.append(w);
   });
 }
 renderLista("habilidades"); renderLista("passivas");
@@ -308,8 +350,10 @@ document.querySelectorAll("[data-add]").forEach((b) => b.addEventListener("click
 /* ---------- salvar / excluir ---------- */
 function mostrarErro(msg) { $("erro").replaceChildren(msg ? el("div", { class: "msg", text: msg }) : ""); }
 
-async function salvar() {
+async function salvar(ficar) {
   mostrarErro("");
+  const sn = data.info.sanidade;
+  if (sn !== "" && sn != null) { data.info.sanidade = Math.max(0, Math.min(100, Number(sn))); $("f-san").value = data.info.sanidade; validar(); }
   const itens = data.inventario.filter((i) => String(i.name).trim() || i.image || String(i.description).trim());
   const docData = {
     info: data.info, dom: data.dom,
@@ -320,10 +364,20 @@ async function salvar() {
     ownerUid: raw.ownerUid, ownerName: raw.ownerName || "", updatedAt: serverTimestamp()
   };
   if (JSON.stringify(docData).length > 900000) { mostrarErro("A ficha ficou grande demais. Remova ou reduza algumas imagens e GIFs e tente de novo."); return; }
+  try {
+    const atual = await getDoc(doc(db, "fichas", id));
+    if (atual.exists() && msDe(atual.data().updatedAt) > msDe(versao) && !(await confirmar("Esta ficha foi alterada em outro lugar depois que você a abriu. Salvar agora vai sobrescrever essas mudanças. Continuar?", { sim: "Sobrescrever", perigo: true }))) return;
+  } catch (e) { /* sem checagem, segue */ }
   const b = $("btnSalvar"); b.disabled = true; $("salvo").className = "salvo pend"; $("salvo").textContent = "Salvando…";
   try {
     await setDoc(doc(db, "fichas", id), docData);
-    sujo = false; location.href = verUrl;
+    sujo = false; limparRascunho();
+    if (ficar) {
+      const n = await getDoc(doc(db, "fichas", id)).catch(() => null);
+      if (n && n.exists()) versao = n.data().updatedAt;
+      b.disabled = false; $("salvo").className = "salvo"; $("salvo").textContent = "Salvo ✓"; aviso("Ficha salva.", "ok"); return;
+    }
+    location.href = verUrl;
   } catch (e) {
     b.disabled = false; $("salvo").className = "salvo err"; $("salvo").textContent = "Erro ao salvar";
     mostrarErro("Não foi possível salvar (" + (e.code || e.message) + ").");
@@ -338,3 +392,89 @@ $("btnExcluir").addEventListener("click", async () => {
   try { await deleteDoc(doc(db, "fichas", id)); sujo = false; location.replace(dono ? "fichas.html" : "master.html"); }
   catch (e) { mostrarErro("Não foi possível excluir (" + (e.code || e.message) + ")."); }
 });
+
+/* ---------- seções recolhíveis, atalhos e itens compactos ---------- */
+const CHAVE = "nh-ed-fechadas:" + id;
+let fechadas = [];
+try { fechadas = JSON.parse(localStorage.getItem(CHAVE) || "[]"); } catch (e) { fechadas = []; }
+const SEC = ["info", "dom", "status", "mochila", "habilidades", "passivas", "aparencia"];
+const plural = (n, a, b) => n + " " + (n === 1 ? a : b);
+const tem = (v) => v !== "" && v != null;
+function textoResumo(k) {
+  const d = data;
+  if (k === "info") return [d.info.nome || "Sem nome", tem(d.info.hp) && "HP " + d.info.hp, tem(d.info.sanidade) && "Sanidade " + d.info.sanidade + "%"].filter(Boolean).join(" · ");
+  if (k === "dom") return [d.dom.nome, tem(d.dom.edomMax) && "EDOM " + (d.dom.edom || 0) + "/" + d.dom.edomMax, d.domsExtra.length && "+" + plural(d.domsExtra.length, "dom", "doms")].filter(Boolean).join(" · ");
+  if (k === "status") return STATUS.filter((s) => tem(d.status[s[0]])).length + "/" + STATUS.length + " status preenchidos";
+  if (k === "mochila") return plural(d.inventario.filter((i) => String(i.name).trim()).length, "item", "itens");
+  if (k === "aparencia") return (d.retrato ? "Com imagem" : "Sem imagem") + (String(d.aparencia || "").trim() ? " · com texto" : "");
+  const l = d[k].filter((x) => String(x.nome).trim());
+  return l.length ? plural(l.length, k === "passivas" ? "passiva" : "habilidade", k === "passivas" ? "passivas" : "habilidades") + ": " + l.slice(0, 3).map((x) => x.nome).join(", ") + (l.length > 3 ? "…" : "") : "Vazio";
+}
+const guardar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(fechadas)); } catch (e) { /* sem armazenamento */ } };
+const blocos = [...document.querySelectorAll(".ficha > .bloco")];
+const nav = el("nav", { class: "ed-nav", "aria-label": "Seções da ficha" });
+const chips = el("div", { class: "ed-chips" });
+blocos.forEach((b, i) => {
+  const k = SEC[i], aba = b.querySelector(".aba"), corpo = b.querySelector(".corpo");
+  const rotulo = aba.lastChild.textContent.trim();
+  b.id = "sec-" + k; corpo.id = "corpo-" + k; aba.setAttribute("aria-controls", corpo.id);
+  const res = el("p", { class: "resumo-sec" }); corpo.prepend(res);
+  aba.append(el("span", { class: "aba-chev", "aria-hidden": "true", text: "▾" }));
+  aba.setAttribute("role", "button"); aba.tabIndex = 0;
+  b._set = (fechar, salvar = true) => {
+    b.classList.toggle("fechado", fechar); aba.setAttribute("aria-expanded", String(!fechar));
+    if (fechar) res.textContent = textoResumo(k);
+    const j = fechadas.indexOf(k);
+    if (fechar && j < 0) fechadas.push(k); else if (!fechar && j >= 0) fechadas.splice(j, 1);
+    if (salvar) guardar();
+  };
+  aba.addEventListener("click", () => b._set(!b.classList.contains("fechado")));
+  aba.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); aba.click(); } });
+  b._set(fechadas.includes(k), false);
+  const c = el("button", { type: "button", class: "ed-chip", text: rotulo });
+  c.addEventListener("click", () => { b._set(false); b.scrollIntoView({ behavior: "smooth", block: "start" }); });
+  chips.append(c);
+});
+const acoes = el("div", { class: "ed-acoes" });
+[["Recolher tudo", true], ["Expandir tudo", false]].forEach(([t, f]) => {
+  const x = el("button", { type: "button", class: "ed-tudo", text: t });
+  x.addEventListener("click", () => { blocos.forEach((b) => b._set(f, false)); fechadas = f ? SEC.slice() : []; guardar(); if (f) scrollTo({ top: 0, behavior: "smooth" }); });
+  acoes.append(x);
+});
+nav.append(chips, acoes);
+$("tela").insertBefore(nav, document.querySelector(".ficha"));
+const medirTopo = () => { const t = $("topbar"); document.documentElement.style.setProperty("--topo-h", (t ? t.offsetHeight : 0) + "px"); };
+medirTopo(); addEventListener("resize", medirTopo);
+
+// itens de habilidades, passivas e doms extras: botão para recolher cada um
+const mini = { habilidades: new Set(), passivas: new Set(), domsExtra: new Set() };
+function compactar(listaId, seletor) {
+  const lista = $(listaId), fechados = mini[listaId];
+  const varrer = () => lista.querySelectorAll(":scope > " + seletor).forEach((w, i) => {
+    if (w.querySelector(".min-toggle")) return;
+    const b = el("button", { type: "button", class: "min-toggle", "aria-label": "Recolher ou expandir", text: "▾" });
+    const aplicar = (f) => { w.classList.toggle("mini-fechado", f); b.setAttribute("aria-expanded", String(!f)); if (f) fechados.add(i); else fechados.delete(i); };
+    b.addEventListener("click", () => aplicar(!w.classList.contains("mini-fechado")));
+    const cab = w.querySelector(".dom-card-head");
+    if (cab) cab.insertBefore(b, cab.lastElementChild); else w.append(b);
+    aplicar(fechados.has(i));
+  });
+  new MutationObserver(varrer).observe(lista, { childList: true }); varrer();
+}
+compactar("habilidades", ".item"); compactar("passivas", ".item"); compactar("domsExtra", ".dom-card");
+
+/* ---------- salvar e continuar, tamanho, rolar todos, contador ---------- */
+const bCont = el("button", { type: "button", class: "btn sec", id: "btnContinuar", text: "Salvar e continuar" });
+$("btnSalvar").after(bCont); $("salvo").after(tamEl); atualizarTam();
+bCont.addEventListener("click", () => salvar(true));
+const bRolar = el("button", { type: "button", class: "btn mini sec", text: "Rolar todos (1d20)" });
+$("status").before(bRolar);
+bRolar.addEventListener("click", async () => {
+  if (STATUS.some((x) => tem(data.status[x[0]])) && !await confirmar("Rolar todos os status de novo? Os valores atuais serão substituídos.", { sim: "Rolar" })) return;
+  STATUS.forEach((x) => { const v = rolar("1d20"); data.status[x[0]] = v; $("st-" + x[0]).value = v; });
+  marcarSujo();
+});
+const taAp = document.querySelector('textarea[data-k="aparencia"]');
+const contAp = el("small", { class: "cont" }); taAp.after(contAp);
+const contarAp = () => { contAp.textContent = taAp.value.length + " / 3000"; };
+taAp.addEventListener("input", contarAp); contarAp();

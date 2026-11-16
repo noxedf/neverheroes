@@ -259,3 +259,80 @@ html[data-tema=pergaminho] :is(.toast){color:#fff}
 html[data-tema=pergaminho] :is(input,textarea,select){background:#fffaf0}
 html[data-tema=pergaminho] th{color:#fff;background:linear-gradient(180deg,#8c6a1c,#6b4e0e)}
 html[data-tema=pergaminho] .leitura-btn{background:var(--graphite)}
+
+/* ===== v12: editor de ficha com seções recolhíveis ===== */
+:root{--topo-h:56px}
+.bloco{scroll-margin-top:calc(var(--topo-h) + 4.6rem)}
+.aba{cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;max-width:calc(100% - 1.8rem);padding-block:.4rem}
+.aba:hover,.aba:focus-visible{color:#fff;outline:none}
+.aba-chev{margin-left:.5rem;font-size:.85em;color:var(--crimson-hi);transition:rotate .2s}
+.bloco.fechado .aba-chev{rotate:-90deg}
+.resumo-sec{display:none;margin:0;color:var(--muted);font-style:italic;font-size:1.05rem;overflow-wrap:anywhere}
+.bloco.fechado .corpo{padding-block:1.25rem .9rem;cursor:pointer}
+.bloco.fechado .corpo>:not(.resumo-sec){display:none}
+.bloco.fechado .resumo-sec{display:block}
+.bloco.fechado .corpo::before{content:"Toque para abrir";float:right;margin-left:.6rem;font:.72rem var(--head);color:var(--gold-lo)}
+.bloco.fechado{margin-top:1.7rem}
+
+/* barra de atalhos fixa sob o topo */
+.ed-nav{position:sticky;top:var(--topo-h);z-index:8;display:flex;align-items:center;gap:.5rem;margin:0 0 .8rem;padding:.5rem .1rem;background:rgba(14,14,16,.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--steel)}
+.ed-chips{display:flex;gap:.4rem;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent);-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent)}
+.ed-chips::-webkit-scrollbar{display:none}
+.ed-chip,.ed-tudo{flex:none;min-height:40px;padding:.3rem .85rem;font:700 .8rem var(--head);letter-spacing:.04em;color:var(--gold-hi);background:var(--slate);border:1px solid var(--gold-lo);border-radius:20px;cursor:pointer;white-space:nowrap}
+.ed-chip:hover,.ed-tudo:hover{border-color:var(--gold)}
+.ed-chip:active,.ed-tudo:active{background:rgba(201,162,75,.16)}
+.ed-acoes{display:flex;gap:.4rem;flex:none}
+.ed-tudo{border-radius:2px;color:var(--muted);background:transparent}
+html[data-tema=pergaminho] .ed-nav{background:rgba(248,241,224,.96)}
+
+/* itens compactos (habilidades, passivas, doms extras) */
+.item,.dom-card.extra{position:relative}
+.item .min-toggle{position:absolute;top:.35rem;right:.35rem}
+.item{padding-right:3rem}
+.min-toggle{width:36px;height:36px;display:grid;place-items:center;flex:none;color:var(--gold-hi);background:var(--coal);border:1px solid var(--steel);border-radius:2px;cursor:pointer;font-size:.95rem;transition:rotate .2s}
+.min-toggle:hover{border-color:var(--gold)}
+.mini-fechado .min-toggle{rotate:-90deg}
+.dom-card-head .min-toggle{margin-left:auto;margin-right:.4rem}
+.item.mini-fechado textarea,.item.mini-fechado .hab-img,.item.mini-fechado .rm,.dom-card.mini-fechado .hab-img{display:none}
+.item.mini-fechado{padding-block:.5rem}
+@media (pointer:coarse){.min-toggle{width:44px;height:44px}.item{padding-right:3.4rem}}
+
+/* imagens de pré-visualização não dominam a tela */
+.apar-pic{max-height:min(55vh,420px);object-fit:contain}
+.hab-prev{width:96px;height:96px}
+
+/* celular */
+@media (max-width:640px){
+  .ficha{padding:.9rem .7rem}
+  .ficha-logo{margin-bottom:.4rem}
+  .corpo{padding:1.3rem .8rem .9rem}
+  .ed-acoes{display:none}
+  .ed-nav{margin-inline:-.2rem}
+  .save-bar{padding-block:.6rem}
+  .save-bar .danger{margin-left:0;flex:1 0 100%;order:5}
+}
+
+/* computador: aproveita a largura */
+@media (min-width:900px){
+  .ficha{padding:1.6rem 1.8rem}
+  #status{display:grid;grid-template-columns:repeat(2,1fr);gap:.2rem 2.2rem}
+  .lista-itens{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  .ed-nav{padding:.6rem .1rem}
+}
+@media (min-width:1280px){#status{grid-template-columns:repeat(3,1fr)}.shell:has(.ed-nav){max-width:1180px}}
+@media print{.ed-nav,.min-toggle,.aba-chev{display:none!important}}
+
+/* ===== v13: rascunho, validação, contadores, ordem ===== */
+.invalido{border-color:var(--crimson-hi)!important;background:rgba(163,21,31,.18)!important}
+.cont{grid-column:1/-1;justify-self:end;font-size:.78rem;color:var(--muted);margin-top:-.2rem}
+.corpo>textarea+.cont{display:block;text-align:right}
+.item-acoes{grid-column:1/-1;display:flex;justify-content:flex-end;gap:.4rem}
+.item-acoes .btn[disabled]{opacity:.35}
+.item.mini-fechado .item-acoes,.item.mini-fechado .cont{display:none}
+.corpo>.btn.mini{margin-bottom:.7rem}
+.dica{margin:0 0 .8rem}
+.dica summary{cursor:pointer;color:var(--gold);font:700 .8rem var(--head);letter-spacing:.04em;padding:.3rem 0;min-height:32px}
+.dica .hint{margin:.3rem 0 0}
+.save-bar .tam{font-size:.82rem;color:var(--muted)}.save-bar .tam.alto{color:#ffb4ba;font-weight:700}
+.aba:focus-visible{outline:2px solid var(--gold-hi);outline-offset:3px}
+@media (max-width:640px){.save-bar .tam{flex:1 0 100%;order:-1;text-align:center}.save-bar #btnContinuar{flex:1}}
