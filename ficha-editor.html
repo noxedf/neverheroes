@@ -9,9 +9,10 @@
 <link rel="icon" type="image/png" sizes="512x512" href="images/icon.png">
 <link rel="apple-touch-icon" href="images/icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/app.css">
 <link rel="stylesheet" href="css/topbar.css">
+<link rel="stylesheet" href="css/refino.css">
 </head>
 <body>
 <header id="topbar"></header>
@@ -31,14 +32,14 @@
         <div class="corpo">
           <div class="info">
             <div>
-              <div class="l2"><span>Nome</span><input id="f-nome" type="text" data-k="info.nome" maxlength="60" placeholder="N/A" aria-label="Nome"></div>
-              <div class="l2"><span>Idade</span><input id="f-idade" type="text" data-k="info.idade" maxlength="20" placeholder="N/A" aria-label="Idade"></div>
-              <div class="l2"><span>Altura</span><input id="f-altura" type="text" data-k="info.altura" maxlength="20" placeholder="N/A" aria-label="Altura"></div>
+              <div class="l2"><span>Nome</span><input id="f-nome" type="text" data-k="info.nome" maxlength="60" placeholder="—" aria-label="Nome"></div>
+              <div class="l2"><span>Idade</span><input id="f-idade" type="text" data-k="info.idade" maxlength="20" placeholder="—" aria-label="Idade"></div>
+              <div class="l2"><span>Altura</span><input id="f-altura" type="text" data-k="info.altura" maxlength="20" placeholder="—" aria-label="Altura"></div>
             </div>
             <div>
               <div class="l2"><span><i class="ic">★</i>Fama</span><input id="f-fama" type="number" data-k="info.fama" placeholder="0" aria-label="Fama"></div>
-              <div class="l2"><span><i class="ic rosa">♥</i>Hp</span><input id="f-hp" type="number" data-k="info.hp" placeholder="2d20" aria-label="Hp"><button type="button" class="dado" data-roll="2d20" data-alvo="info.hp" title="Rolar 2d20">🎲</button></div>
-              <div class="l2"><span><i class="ic verde">$</i>Money</span><input id="f-money" type="number" data-k="info.money" placeholder="00" aria-label="Money"></div>
+              <div class="l2"><span><i class="ic rosa">♥</i>HP</span><input id="f-hp" type="number" data-k="info.hp" placeholder="2d20" aria-label="HP"><button type="button" class="dado" data-roll="2d20" data-alvo="info.hp" title="Rolar 2d20">🎲</button></div>
+              <div class="l2"><span><i class="ic verde">$</i>Dinheiro</span><input id="f-money" type="number" data-k="info.money" placeholder="00" aria-label="Dinheiro"></div>
               <div class="l2"><span><i class="ic rosa">🧠</i>Sanidade</span><input id="f-san" type="number" data-k="info.sanidade" min="0" max="100" placeholder="100" aria-label="Sanidade"><b class="suf">%</b></div>
             </div>
           </div>
@@ -52,8 +53,8 @@
           <div class="dom-card">
             <div class="dom-card-head"><span class="dom-chip" id="chipPrincipal">Dom</span></div>
             <div class="dom">
-              <div class="l2"><span>Dom</span><input id="f-dom" type="text" data-k="dom.nome" maxlength="80" placeholder="N/A" aria-label="Dom"></div>
-              <div class="l2"><span>Categorias</span><input id="f-cat" type="text" data-k="dom.categorias" maxlength="120" placeholder="N/A" aria-label="Categorias"></div>
+              <div class="l2"><span>Dom</span><input id="f-dom" type="text" data-k="dom.nome" maxlength="80" placeholder="—" aria-label="Dom"></div>
+              <div class="l2"><span>Categorias</span><input id="f-cat" type="text" data-k="dom.categorias" maxlength="120" placeholder="—" aria-label="Categorias"></div>
             </div>
           </div>
           <div id="domsExtra"></div>

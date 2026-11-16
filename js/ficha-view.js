@@ -80,7 +80,7 @@ function render() {
             ${linha("", "Nome", dash(nome))}${linha("", "Idade", dash(i.idade))}${linha("", "Altura", dash(i.altura))}
           </div>
           <div>
-            ${linha("★", "Fama", dash(i.fama))}${linha("♥", "Hp", dash(i.hp), "rosa")}${linha("$", "Money", dash(i.money), "verde")}
+            ${linha("★", "Fama", dash(i.fama))}${linha("♥", "HP", dash(i.hp), "rosa")}${linha("$", "Dinheiro", dash(i.money), "verde")}
             ${linha("🧠", "Sanidade", dash(i.sanidade) + (i.sanidade === "" || i.sanidade == null ? "" : "%"), "rosa")}
           </div>
         </div>

@@ -22,9 +22,10 @@
 <link rel="icon" type="image/png" sizes="512x512" href="images/icon.png">
 <link rel="apple-touch-icon" href="images/icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/app.css">
 <link rel="stylesheet" href="css/topbar.css">
+<link rel="stylesheet" href="css/refino.css">
 </head>
 <body class="auth-body">
 
@@ -57,7 +58,7 @@
       </form>
 
       <form id="fCriar" hidden>
-        <div class="field"><label for="cNome">Seu nome (como o mestre vai te ver)</label><input type="text" id="cNome" maxlength="60" autocomplete="nickname" required></div>
+        <div class="field"><label for="cNome">Seu nome (como o Mestre vai ver você)</label><input type="text" id="cNome" maxlength="60" autocomplete="nickname" required></div>
         <div class="field"><label for="cEmail">E-mail</label><input type="email" id="cEmail" autocomplete="email" required></div>
         <div class="field"><label for="cSenha">Senha (mínimo 6 caracteres)</label><input type="password" id="cSenha" minlength="6" autocomplete="new-password" required></div>
         <button class="btn block" type="submit">Criar conta e entrar</button>
@@ -79,11 +80,11 @@
     <!-- MESTRE -->
     <div id="paneMes" hidden>
       <form id="fMestre">
-        <div class="field"><label for="mEmail">E-mail do mestre</label><input type="email" id="mEmail" autocomplete="email" required></div>
+        <div class="field"><label for="mEmail">E-mail do Mestre</label><input type="email" id="mEmail" autocomplete="email" required></div>
         <div class="field"><label for="mSenha">Senha</label><input type="password" id="mSenha" autocomplete="current-password" required></div>
         <button class="btn block" type="submit">Entrar como Mestre</button>
       </form>
-      <p class="hint" style="margin-top:1.1rem">Contas de Mestre não são criadas por aqui, para ninguém virar Mestre sem autorização. Crie uma conta em <strong>Sou Jogador</strong> e peça para quem administra o site te promover.</p>
+      <p class="hint" style="margin-top:1.1rem">Contas de Mestre não são criadas por aqui, para ninguém virar Mestre sem autorização. Crie uma conta em <strong>Sou Jogador</strong> e peça para quem administra o site promover você.</p>
     </div>
   </div>
 
@@ -111,7 +112,7 @@ const ERROS = {
   "auth/email-already-in-use": "Esse e-mail já tem uma conta. Tente entrar em vez de criar.",
   "auth/invalid-email": "E-mail inválido.",
   "auth/weak-password": "A senha precisa ter pelo menos 6 caracteres.",
-  "auth/user-not-found": "Não achei essa conta. Confira o e-mail ou crie uma conta nova.",
+  "auth/user-not-found": "Não encontramos essa conta. Confira o e-mail ou crie uma conta nova.",
   "auth/wrong-password": "Senha incorreta.",
   "auth/invalid-credential": "E-mail ou senha incorretos.",
   "auth/too-many-requests": "Muitas tentativas. Espere um pouco e tente de novo.",
@@ -119,7 +120,7 @@ const ERROS = {
   "auth/cancelled-popup-request": "A janela do Google foi fechada antes de terminar.",
   "auth/operation-not-allowed": "Esse método de login ainda não foi ativado no Firebase (Authentication > Sign-in method).",
   "auth/unauthorized-domain": "Este endereço não está autorizado no Firebase (Authentication > Settings > Authorized domains).",
-  "auth/network-request-failed": "Sem conexão. Verifique a internet."
+  "auth/network-request-failed": "Sem conexão. Verifique sua internet."
 };
 const erro = (e) => ERROS[e.code] || "Erro: " + (e.code || e.message);
 
@@ -194,7 +195,7 @@ $("fMestre").addEventListener("submit", async (e) => {
   try {
     const cred = await signInWithEmailAndPassword(auth, $("mEmail").value.trim(), $("mSenha").value);
     const p = await getProfile(cred.user.uid);
-    if (!p || p.role !== "master") { await signOut(auth); ocupado = false; aviso("Essa conta não é de mestre."); return; }
+    if (!p || p.role !== "master") { await signOut(auth); ocupado = false; aviso("Esta conta não é de Mestre."); return; }
     location.replace(home(p));
   } catch (err) { ocupado = false; aviso(erro(err)); }
 });

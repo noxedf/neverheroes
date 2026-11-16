@@ -1,0 +1,84 @@
+/* Never Heroes v8: refinamento de celular e de design. Carregado depois de style.css / app.css. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+input,textarea,select{font-size:max(16px,1em)}
+.salvo:empty{display:none}
+
+/* títulos de página e rótulos: frase normal, sem caixa alta espaçada (mais legível) */
+.eyebrow{font-family:var(--body);font-style:italic;font-size:1.1rem;letter-spacing:.02em;text-transform:none;color:var(--crimson-hi)}
+.field>label,.lbl,.inv-field>span{font-size:.82rem;letter-spacing:.04em;text-transform:none;color:var(--muted)}
+.hero-sub{letter-spacing:.3em}
+.btn{font-size:.92rem}
+.btn:active{transform:scale(.98)}
+.aba{max-width:calc(100% - 1.8rem);overflow:hidden;text-overflow:ellipsis}
+
+/* status da ficha (visualização) vira fileira de runas: rótulo pequeno, valor grande */
+.status:has(.val){grid-template-columns:repeat(2,1fr);gap:.6rem}
+.status:has(.val) .l2{flex-direction:column;align-items:center;gap:.15rem;margin:0;padding:.7rem .3rem .6rem;text-align:center;
+  border:1px solid var(--steel);border-top:3px solid var(--crimson-hi);background:linear-gradient(180deg,var(--graphite),var(--coal))}
+.status:has(.val) .l2>span{flex:none;font-size:.8rem;color:var(--muted);justify-content:center}
+.status:has(.val) .l2 .val{flex:none;width:100%;border:0;font-size:1.8rem;line-height:1.15;text-align:center}
+@media (min-width:640px){.status:has(.val){grid-template-columns:repeat(5,1fr)}}
+
+/* toque: sem hover "grudado" e com alvos de 44px */
+@media (hover:none){
+  .fc:hover{transform:none;box-shadow:inset 0 1px 0 rgba(239,210,131,.12)}
+  .fc:hover::before,.fc:hover::after{width:14px;height:14px}
+  .card:hover,.sheet-item:hover,.inv-card:hover{box-shadow:inset 0 1px 0 rgba(239,210,131,.1)}
+}
+@media (pointer:coarse){
+  .btn.mini{min-height:44px;padding:.55rem 1rem;font-size:.8rem;display:inline-flex;align-items:center;justify-content:center}
+  .dado,.skill-remove{min-width:44px;min-height:44px}
+  .tabs button,.seg button{min-height:46px}
+  .linkbtn{padding:.6rem .2rem}
+  .btn-link,.topbar-toggle{min-height:44px}
+  .item-type-chip{min-height:42px}
+  .inv-item-acc-head{min-height:46px}
+  .secnav a{padding:.55rem 1rem}
+  input[type=checkbox]{width:1.3rem;height:1.3rem}
+}
+
+@media (max-width:640px){
+  body{font-weight:500}
+  .lead,.note,.card p,.cat p,.big p,.pane p,.pairs p{hyphens:auto;-webkit-hyphens:auto;overflow-wrap:break-word}
+  .rv{translate:0 10px;transition:opacity .4s ease,translate .4s ease,border-color .25s,box-shadow .25s,background .25s,border-left-color .25s;transition-delay:0s!important}
+  nav .wrap{padding-inline:1rem;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 26px),transparent)}
+  nav a{padding:.55rem 0}
+  .hero-sub{letter-spacing:.22em;font-size:.85rem}
+  .card h3{font-size:1.15rem}
+  .auth-card{padding:1.8rem 1.2rem 1.5rem}
+  .auth-title{font-size:clamp(1.5rem,8.5vw,2rem)}
+  .shell{padding-inline:max(.9rem,env(safe-area-inset-left,0px))}
+  .page-head{padding:2.4rem .5rem 1.8rem}
+  .toolbar .btn,.toolbar input{width:100%}
+  .view-actions{flex-direction:column;align-items:stretch}
+  .view-actions>.btn{width:100%}
+  .view-actions .row-btns{flex-direction:row;width:100%}
+  .view-actions .row-btns .btn{flex:1;width:auto}
+  .fc-foot{flex-direction:column;align-items:stretch}
+  .fc-btns{width:100%}
+  .fc-btns .btn{flex:1}
+  .dom:not(.dom-edom) .l2{flex-wrap:wrap;gap:.1rem}
+  .dom:not(.dom-edom) .l2>span{flex:1 0 100%;font-size:.8rem;color:var(--muted)}
+  .sheet-hero{flex-direction:column;text-align:center}
+  .sheet-meta{justify-content:center}
+  .apar-view{min-height:140px}
+  .save-bar{gap:.6rem}
+  .save-bar .btn:first-child{flex:2}
+  .save-bar .salvo{flex:1 0 100%;order:-1;text-align:center}
+  .lightbox{padding:.4rem}
+}
+@media (max-width:430px){
+  .status .l2>span,.info .l2>span,.dom .l2>span,.l2.edom>span{flex:0 0 6rem}
+  .status:has(.val) .l2>span{flex:none}
+  .dom:not(.dom-edom) .l2>span{flex:1 0 100%}
+  .l2{gap:.45rem}
+  .topbar .brand-title{font-size:.98rem}
+  .topbar .brand-sub{display:none}
+  .inv-card-foot{flex-direction:column;align-items:flex-start}
+}
+@media (max-height:700px) and (max-width:640px){.auth-body{align-items:flex-start}}
+.auth-body{min-height:100vh;min-height:100dvh}
+@supports (height:100dvh){body{min-height:100dvh}}
+@media (max-width:860px){.topbar-menu{max-height:calc(100dvh - 4.4rem);overflow-y:auto;overscroll-behavior:contain}.topbar .tl{min-height:44px;display:flex;align-items:center}}
+@media print{.rv{opacity:1!important;translate:none!important}}

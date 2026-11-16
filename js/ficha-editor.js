@@ -23,7 +23,7 @@ const data = normalizar(raw);
 const verUrl = "ficha-view.html?id=" + encodeURIComponent(id);
 renderTopbar(profile, dono ? "fichas" : "master", "Editor de ficha");
 $("btnCancelar").href = verUrl;
-$("dono").textContent = (dono ? "Editor de ficha" : "Editando a ficha de " + (raw.ownerName || "outro jogador")) + " · preencha os campos e clique em Salvar ficha no fim da página.";
+$("dono").textContent = (dono ? "Editor de ficha" : "Editando a ficha de " + (raw.ownerName || "outro jogador")) + " · preencha os campos e use o botão Salvar ficha no fim da página.";
 $("carregando").hidden = true;
 $("tela").hidden = false;
 
@@ -95,9 +95,9 @@ function renderDoms(focoNovo) {
   $("chipPrincipal").textContent = tem ? "Dom 1" : "Dom";
   $("notaEdom").hidden = !tem;
   data.domsExtra.forEach((d, i) => {
-    const nome = el("input", { type: "text", maxlength: "80", placeholder: "N/A", "aria-label": "Dom " + (i + 2) });
+    const nome = el("input", { type: "text", maxlength: "80", placeholder: "—", "aria-label": "Dom " + (i + 2) });
     nome.value = d.nome; nome.addEventListener("input", () => { d.nome = nome.value; marcarSujo(); });
-    const cat = el("input", { type: "text", maxlength: "120", placeholder: "N/A", "aria-label": "Categorias do dom " + (i + 2) });
+    const cat = el("input", { type: "text", maxlength: "120", placeholder: "—", "aria-label": "Categorias do dom " + (i + 2) });
     cat.value = d.categorias; cat.addEventListener("input", () => { d.categorias = cat.value; marcarSujo(); });
     const rm = el("button", { type: "button", class: "skill-remove dom-rm", "aria-label": "Remover dom " + (i + 2), title: "Remover este dom", text: "✕" });
     rm.addEventListener("click", () => {

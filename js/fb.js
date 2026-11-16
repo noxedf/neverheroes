@@ -109,7 +109,7 @@ export function fmtData(ts) {
   return new Date(ts.seconds * 1000).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-export const FONTS = "https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap";
+export const FONTS = "https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap";
 
 // Upload de imagem sem recorte. GIF entra como está (para não perder a animação) até gifMaxKB;
 // as demais imagens são reduzidas para caber em max pixels no maior lado.
