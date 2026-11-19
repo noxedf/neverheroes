@@ -262,13 +262,13 @@ mergeAndRenderRolls();
 }, err => showRollsSyncError('mestre', err));
 return;
 }
-const unsubPublic = rollsRef.where('hidden', '==', false).orderBy('createdAt', 'desc').limit(50)
+const unsubPublic = rollsRef.where('hidden', '==', false)
 .onSnapshot(snap => {
 rollsPublicMap = {};
 snap.docs.forEach(d => { rollsPublicMap[d.id] = { id: d.id, ...d.data() }; });
 mergeAndRenderRolls();
 }, err => showRollsSyncError('rolagens públicas', err));
-const unsubMine = rollsRef.where('by', '==', curUser.uid).orderBy('createdAt', 'desc').limit(50)
+const unsubMine = rollsRef.where('by', '==', curUser.uid)
 .onSnapshot(snap => {
 rollsMineMap = {};
 snap.docs.forEach(d => { rollsMineMap[d.id] = { id: d.id, ...d.data() }; });
