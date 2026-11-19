@@ -50,6 +50,7 @@ O site tem uma área de contas e fichas, no mesmo esquema do Heartsoul, guardada
 | `ficha-view.html?id=...` | A ficha só para leitura (resumo, status, mochila em cartões, habilidades, passivas, aparência). Consumíveis têm o botão "Usar 1" |
 | `ficha-editor.html?id=...` | O editor: Salvar e Cancelar no fim da página, avisa se houver alterações não salvas |
 | `perfil.html` | Nome, foto de perfil, sair e excluir conta |
+| `mesa.html` | **Tabletop** (igual ao do Heartsoul, sem chat): mesas, mapas e cenas, tokens das fichas, dados, névoa/visão, iniciativa |
 | `master.html` | Painel do Mestre: todas as fichas, agrupadas por jogador, com busca |
 
 Arquivos: `css/app.css` (tema), `js/fb.js` (Firebase, topbar, login obrigatório), `js/firebase-config.js` (suas chaves) e `firestore.rules`.
@@ -83,3 +84,16 @@ A mesma edição promove qualquer outra pessoa. Quem já tinha a coleção `admi
 - Habilidades e passivas aceitam uma imagem ou GIF de visualização (clique nela para ampliar). A Aparência tem a imagem do personagem em tamanho grande, sem recorte; o retrato pequeno de Informações e da lista de fichas usa essa mesma imagem.
 - GIFs entram animados e sem alteração, com limite de 400 KB (450 KB na Aparência). Imagens comuns são reduzidas automaticamente. Tudo fica guardado no próprio documento da ficha, que tem limite de cerca de 900 KB no total.
 - Fotos de perfil e imagens dos itens continuam sendo redimensionadas no navegador.
+
+
+## Tabletop (mesa.html)
+
+Portado da Mesa do Heartsoul. Scripts em `js/mesa/`, estilo em `css/mesa.css` e `css/mesa-base.css`.
+
+- O Mestre cria mesas, gera mapas, troca de cena, usa névoa, paredes, portas, luzes, iniciativa e biblioteca de NPCs.
+- O jogador entra na mesa com uma ficha: o token usa o nome e o retrato da ficha, e o HP vem de `Informações > HP`.
+- HP é um valor único (a ficha do Never Heroes não tem HP por parte do corpo). O HP do token vale só na mesa.
+- "Seus recursos" mostra a EDOM e grava na ficha. "Sua mochila" mostra os itens; consumíveis têm "Usar 1", que rola o dado do efeito e desconta 1 da ficha.
+- Ao salvar a ficha no editor, o token dela nas mesas acompanha o novo nome e retrato.
+- Qualquer pessoa logada vê as mesas; só o Mestre cria.
+- **Republique o `firestore.rules`** (Firebase > Firestore > Rules > Publish), senão a Mesa dá erro de permissão.

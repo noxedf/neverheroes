@@ -13,6 +13,12 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'master';
     }
 
+    // O Mestre dono desta mesa (quem a criou). Um Mestre visitante é tratado como jogador comum nela.
+    function isTableMaster(tableId) {
+      return logado() &&
+        get(/databases/$(database)/documents/tables/$(tableId)).data.createdBy == request.auth.uid;
+    }
+
     // Perfis de usuário (jogador ou mestre)
     match /users/{userId} {
       allow read: if logado() && (request.auth.uid == userId || mestre());
@@ -33,6 +39,260 @@ service cloud.firestore {
                     && (resource.data.ownerUid == request.auth.uid || mestre())
                     && request.resource.data.ownerUid == resource.data.ownerUid;
       allow delete: if logado() && (resource.data.ownerUid == request.auth.uid || mestre());
+    }
+
+    // Biblioteca de NPCs/Monstros prontos (js/npc-library.js): templates
+    // reaproveitáveis que um Mestre monta uma vez (nome, imagem, cor, HP
+    // padrão por parte do corpo, visão) e depois usa em qualquer mesa dele
+    // pra colocar um token pronto na cena com um clique, sem preencher o
+    // formulário de NPC de novo. Só existem em master.html/mesa.html;
+    // nada aqui depende de mesa específica — cada template pertence só ao
+    // Mestre que criou (ownerId), como nas demais coleções do Mestre.
+    match /npcTemplates/{templateId} {
+      allow read: if logado() && mestre() && resource.data.ownerId == request.auth.uid;
+      allow create: if logado() && mestre() && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if logado() && mestre() && resource.data.ownerId == request.auth.uid;
+    }
+
+    // Mesas de tabletop (tabuleiro). Qualquer pessoa logada vê as mesas; só um Mestre cria uma
+    // (como dono dela) e só o dono edita ou exclui depois.
+    match /tables/{tableId} {
+      allow read: if logado();
+      allow create: if mestre() && request.resource.data.createdBy == request.auth.uid;
+      allow update, delete: if isTableMaster(tableId);
+
+      // Tokens sobre o tabuleiro. Cada jogador só cria/move/remove o
+      // próprio token (id do token = seu uid, ao "virar" a ficha); só o
+      // Mestre DONO desta mesa pode gerenciar qualquer token dela
+      // (inclusive NPCs avulsos) — um Mestre visitante só mexe no próprio.
+      // Exceção: o campo "hp" (HP por parte do corpo) pode ser atualizado
+      // por qualquer pessoa logada presente na mesa, em qualquer token —
+      // é o que permite que uma rolagem de ataque/cura no painel de Dados
+      // aplique dano/cura automaticamente no alvo escolhido, mesmo que o
+      // alvo seja o token de outro jogador ou um NPC do Mestre. O campo
+      // "armor" (HP de Armadura, durabilidade da armadura equipada) segue
+      // a mesma regra — dano consome a armadura antes do HP normal (ver
+      // applyRollToBodyPart em js/mesa-dice.js), então precisa do mesmo
+      // acesso amplo de escrita.
+      // Props/montarias (campo prop:true): objetos soltos no mapa que
+      // QUALQUER pessoa presente na mesa pode criar e depois mover/girar/
+      // redimensionar à vontade — não têm dono de verdade no sentido de
+      // controle (ownerId só marca quem colocou, pra permitir remover o
+      // próprio prop depois). Criação exige prop:true e ownerId == quem
+      // está criando (pra ninguém criar um token disfarçado em nome de
+      // outra pessoa); atualização de um prop já existente fica restrita
+      // aos campos de movimento/aparência (nunca dá pra virar prop:false e
+      // "roubar" outro token por essa via, nem mexer em hp/visão que um
+      // prop nem tem).
+      match /tokens/{tokenId} {
+        allow read: if logado();
+        allow create: if logado() && (
+          tokenId == request.auth.uid ||
+          isTableMaster(tableId) ||
+          (request.resource.data.prop == true && request.resource.data.ownerId == request.auth.uid)
+        );
+        allow delete: if logado() && (
+          tokenId == request.auth.uid ||
+          isTableMaster(tableId) ||
+          (resource.data.prop == true && resource.data.ownerId == request.auth.uid)
+        );
+        allow update: if logado() && (
+          tokenId == request.auth.uid ||
+          isTableMaster(tableId) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hp', 'armor', 'updatedAt']) ||
+          (
+            resource.data.prop == true && request.resource.data.prop == true &&
+            request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['x', 'y', 'rot', 'scale', 'z', 'color', 'updatedAt'])
+          )
+        );
+      }
+
+      // Rolagens de dados da mesa, em tempo real para todos os presentes.
+      // Uma rolagem marcada como "hidden" só pode ser lida por quem a fez
+      // e pelo Mestre DONO desta mesa — os outros (inclusive um Mestre
+      // visitante de outra campanha) nem recebem o documento.
+      match /rolls/{rollId} {
+        allow read: if logado() && (
+          resource.data.hidden != true ||
+          resource.data.by == request.auth.uid ||
+          isTableMaster(tableId)
+        );
+        allow create: if logado() && request.resource.data.by == request.auth.uid;
+        allow delete: if logado() && (resource.data.by == request.auth.uid || isTableMaster(tableId));
+        allow update: if false; // rolagens são um registro imutável
+      }
+
+      // Cenas (estilo "scene selector" do Owlbear Rodeo): cada mesa pode ter
+      // várias cenas (mapas) já preparadas; o Mestre troca qual está ativa
+      // (campo "activeSceneId" na própria mesa) e todos veem a troca na
+      // hora. Só o Mestre DONO desta mesa cria/edita/remove cenas dela;
+      // todos que estão na mesa leem.
+      match /scenes/{sceneId} {
+        allow read: if logado();
+        allow create, update, delete: if isTableMaster(tableId);
+      }
+
+      // Traços de desenho livre do Mestre sobre o mapa (ferramenta ✏️).
+      // Só o Mestre dono desta mesa desenha/apaga; todos na mesa veem.
+      match /drawings/{drawingId} {
+        allow read: if logado();
+        allow create, delete: if isTableMaster(tableId);
+        allow update: if false;
+      }
+
+      // Névoa de guerra (ferramentas 🌫 retângulo e 🖊️ contorno livre — dois
+      // formatos de documento na mesma coleção: {x,y,w,h} pro retângulo,
+      // {type:'poly', points:[...]} pro contorno). Só o Mestre dono desta
+      // mesa cobre/revela áreas; todos na mesa veem a névoa (o Mestre a vê
+      // semitransparente no próprio cliente, os jogadores — e um Mestre
+      // visitante — a veem totalmente opaca).
+      match /fog/{fogId} {
+        allow read: if logado();
+        allow create, delete: if isTableMaster(tableId);
+        allow update: if false;
+      }
+
+      // Paredes (ferramenta 🧱) que bloqueiam a visão dos tokens — dão
+      // forma à névoa de guerra automática. Só o Mestre dono desta mesa
+      // desenha/apaga; todos na mesa leem (mesmo que só o Mestre chegue a
+      // renderizar as linhas — o cálculo de visão roda no cliente de
+      // todo mundo, então todos precisam poder ler os segmentos).
+      match /walls/{wallId} {
+        allow read: if logado();
+        allow create, delete: if isTableMaster(tableId);
+        // "update" existe só pra alça de edição de ponto (arrastar um
+        // vértice já salvo pra reposicioná-lo, ver startWallVertexDrag em
+        // mesa-tools.js) — trava em "points" pra ninguém reatribuir a
+        // parede pra outra cena ou mudar "closed" por essa via.
+        allow update: if isTableMaster(tableId) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['points']);
+      }
+
+      // Portas (ferramenta 🚪) — um segmento único que bloqueia a visão só
+      // enquanto fechado (campo "open"). Só o Mestre dono desta mesa cria e
+      // apaga (arrastar/clicar com a ferramenta ativa); abrir/fechar é uma
+      // ação de jogo disponível pra qualquer pessoa presente na mesa, então
+      // "open" fica liberado pra qualquer um — mas nunca mexer em mais
+      // nada por essa via. Uma porta "locked" (trancada, botão direito do
+      // Mestre) só abre pela mão do próprio Mestre: pra quem não é Mestre,
+      // a trava aqui replica exatamente a checagem que o cliente já faz
+      // antes de chamar update, pra um cliente malicioso não conseguir
+      // abrir uma porta trancada só pulando a checagem do próprio app.
+      match /doors/{doorId} {
+        allow read: if logado();
+        allow create, delete: if isTableMaster(tableId);
+        allow update: if logado() && (
+          (isTableMaster(tableId) &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['open', 'locked'])) ||
+          (!isTableMaster(tableId) &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['open']) &&
+            (resource.data.locked != true || resource.data.open == true))
+        );
+      }
+
+      // Fontes de luz (ferramenta 🔥) — revelam sua área sempre, independente
+      // de token por perto (ver bloco de luzes em recomputeAndRenderVision,
+      // mesa-tools.js). Só o Mestre dono desta mesa acende/apaga/ajusta o
+      // raio (roda do mouse sobre uma luz já acesa); todos na mesa leem,
+      // porque o cálculo de visão roda no cliente de todo mundo.
+      match /lights/{lightId} {
+        allow read: if logado();
+        allow create, delete: if isTableMaster(tableId);
+        allow update: if isTableMaster(tableId) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['radius']);
+      }
+
+      // Memória de exploração da névoa dinâmica (um doc por cena, campo
+      // "cells" acumulando as casas da grade já reveladas por algum token
+      // com visão). Qualquer pessoa presente na mesa pode contribuir com
+      // novas casas exploradas (é o próprio cálculo de visão, rodando no
+      // cliente de cada jogador, que grava aqui) — nunca "esquece" uma
+      // área, só soma; por isso não há necessidade de restringir a
+      // escrita ao Mestre. Só o Mestre remove (ao excluir a cena).
+      // Memória de exploração da névoa dinâmica. Documento "base" (um por
+      // cena): histórico agregado de tudo que qualquer token já revelou —
+      // só usado como referência pelo Mestre (ele já enxerga o mapa
+      // inteiro sempre, com ou sem isso), então continua aberto a
+      // qualquer pessoa presente na mesa contribuir (é o próprio cálculo
+      // de visão do Mestre, rodando no cliente dele, que grava aqui).
+      match /visionMemory/{sceneId} {
+        allow read: if logado();
+        allow create, update: if logado();
+        allow delete: if isTableMaster(tableId);
+
+        // Memória PRIVADA de cada jogador — visão restrita ao dono do
+        // token: cada jogador só descobre o mapa através dos próprios
+        // tokens, então a memória de exploração de cada um fica isolada
+        // aqui, num subdocumento só dele. Só ele mesmo escreve na
+        // própria (é o cálculo de visão rodando no cliente dele); o
+        // Mestre pode ler qualquer uma (não usa isso hoje, mas não há
+        // razão pra esconder do dono da mesa), só não escreve.
+        match /players/{uid} {
+          allow read: if logado() && (request.auth.uid == uid || isTableMaster(tableId));
+          allow create, update: if logado() && request.auth.uid == uid;
+          allow delete: if logado() && (request.auth.uid == uid || isTableMaster(tableId));
+        }
+      }
+
+      // Marcações temporárias de "ping" no mapa (ferramenta 📍). Qualquer
+      // jogador presente pode marcar um ponto; cada um só apaga a própria
+      // marcação (o próprio cliente que criou a apaga sozinho após alguns
+      // segundos), e o Mestre dono desta mesa pode apagar qualquer uma.
+      match /pings/{pingId} {
+        allow read: if logado();
+        allow create: if logado() && request.resource.data.by == request.auth.uid;
+        allow delete: if logado() && (resource.data.by == request.auth.uid || isTableMaster(tableId));
+        allow update: if false;
+      }
+
+      // Áreas de efeito (templates de magia/ataque: círculo, cone, linha —
+      // ferramentas ⭕🔺▭). Qualquer jogador presente pode desenhar uma
+      // área (é ele quem conjura a magia); cada um só apaga a própria
+      // área, e o Mestre dono desta mesa pode apagar qualquer uma. Ao
+      // contrário do ping, a área fica salva até ser apagada, então todos
+      // leem.
+      match /templates/{templateId} {
+        allow read: if logado();
+        allow create: if logado() && request.resource.data.by == request.auth.uid;
+        allow delete: if logado() && (resource.data.by == request.auth.uid || isTableMaster(tableId));
+        allow update: if false;
+      }
+
+      // Rastreador de iniciativa (turnos). Todos na mesa leem a ordem e o
+      // turno atual. O Mestre mexe em tudo (inclusive nos monstros que ele
+      // mesmo adiciona); cada jogador cria e ajusta APENAS a própria
+      // entrada — é o campo "by" (uid de quem entrou na iniciativa) que
+      // marca de quem ela é, e ele precisa continuar apontando pro próprio
+      // usuário depois da edição, senão daria pra "adotar" a entrada de
+      // outra pessoa.
+      // O documento especial "_active" (turno atual + número da rodada) fica
+      // fora disso: só o Mestre avança o turno, então ele é excluído
+      // explicitamente da regra do jogador — senão bastaria criá-lo com
+      // by == uid pra passar.
+      match /initiative/{entryId} {
+        allow read: if logado();
+        allow create: if isTableMaster(tableId) ||
+          (logado() && entryId != '_active' &&
+           request.resource.data.by == request.auth.uid);
+        allow update: if isTableMaster(tableId) ||
+          (logado() && entryId != '_active' &&
+           resource.data.by == request.auth.uid &&
+           request.resource.data.by == request.auth.uid);
+        allow delete: if isTableMaster(tableId) ||
+          (logado() && entryId != '_active' && resource.data.by == request.auth.uid);
+      }
+
+      // Presença: "batimento" (heartbeat) de quem está com a mesa aberta
+      // agora. Cada usuário só escreve/apaga o próprio documento (id = seu
+      // uid); a leitura da lista completa é exclusiva do Mestre DONO desta
+      // mesa — é isso que faz o painel "Quem está na mesa" ser visível só
+      // pra ele (um Mestre visitante não vê a presença de uma mesa alheia).
+      match /presence/{uid} {
+        allow read: if isTableMaster(tableId);
+        allow create, update: if logado() && uid == request.auth.uid;
+        allow delete: if logado() && (uid == request.auth.uid || isTableMaster(tableId));
+      }
     }
   }
 }

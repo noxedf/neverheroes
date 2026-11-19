@@ -1,5 +1,5 @@
 import { db, guard, renderTopbar, el, resizeImage, prepararImagem } from "./fb.js";
-import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { aviso, confirmar } from "./ui.js";
 import { ico, pintarIcones } from "./icons.js";
 import { STATUS, esc, num, fmt, normalizar, itemVazio, resumoEspaco, tipoRotulo, domExtraVazio } from "./ficha-shared.js";
@@ -373,6 +373,7 @@ async function salvar(ficar) {
   try {
     await setDoc(doc(db, "fichas", id), docData);
     sujo = false; limparRascunho();
+    if (dono) sincronizarTokens(docData).catch(() => {});
     if (ficar) {
       const n = await getDoc(doc(db, "fichas", id)).catch(() => null);
       if (n && n.exists()) versao = n.data().updatedAt;
@@ -382,6 +383,36 @@ async function salvar(ficar) {
   } catch (e) {
     b.disabled = false; $("salvo").className = "salvo err"; $("salvo").textContent = "Erro ao salvar";
     mostrarErro("Não foi possível salvar (" + (e.code || e.message) + ").");
+  }
+}
+// Tabletop: se esta ficha está numa mesa, o token acompanha o nome e a imagem salvos aqui.
+function reduzirParaToken(src, max) {
+  return new Promise((resolve) => {
+    if (!src) { resolve(""); return; }
+    if (/^data:image\/gif/.test(src) && src.length < 150000) { resolve(src); return; }
+    const im = new Image();
+    im.onerror = () => resolve("");
+    im.onload = () => {
+      const k = Math.min(1, max / Math.max(im.width, im.height));
+      const c = document.createElement("canvas"); c.width = Math.max(1, Math.round(im.width * k)); c.height = Math.max(1, Math.round(im.height * k));
+      c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+      const w = c.toDataURL("image/webp", 0.85);
+      resolve(w.startsWith("data:image/webp") ? w : c.toDataURL("image/jpeg", 0.85));
+    };
+    im.src = src;
+  });
+}
+async function sincronizarTokens(d) {
+  const u = await getDoc(doc(db, "users", user.uid));
+  const mesas = (u.exists() && Array.isArray(u.data().activeTables)) ? u.data().activeTables : [];
+  if (!mesas.length) return;
+  const img = await reduzirParaToken(d.retrato, 256);
+  for (const t of mesas) {
+    try {
+      const ref = doc(db, "tables", t, "tokens", user.uid);
+      const s = await getDoc(ref);
+      if (s.exists() && s.data().sheetId === id) await updateDoc(ref, { name: d.nome, image: img || s.data().image || "", updatedAt: serverTimestamp() });
+    } catch (e) { /* mesa apagada ou sem permissão */ }
   }
 }
 // Enter dentro de um campo não deve salvar (e sair da página) sem querer

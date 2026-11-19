@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<script>try{var l=JSON.parse(localStorage.getItem('nh-leitura')||'{}');if(l.s)document.documentElement.style.fontSize=l.s+'%'}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tabletop | Never Heroes</title>
+<meta name="theme-color" content="#0e0e10">
+<link rel="icon" type="image/svg+xml" href="images/icon.svg">
+<link rel="icon" type="image/png" sizes="512x512" href="images/icon.png">
+<link rel="apple-touch-icon" href="images/icon.png">
+<link rel="preconnect" href="https://www.gstatic.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@900&family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/mesa-base.css">
+<link rel="stylesheet" href="css/topbar.css">
+<link rel="stylesheet" href="css/mesa.css">
+</head>
+<body>
+<header id="topbar"></header>
+
+<div class="shell">
+
+  <!-- ===================== LOBBY ===================== -->
+  <div id="lobbyView">
+    <div class="page-head">
+      <div class="eyebrow">Tabletop</div>
+      <h1 class="h-font">Mesas de Jogo</h1>
+      <p class="lede">Entre em uma mesa para mover sua ficha sobre o tabuleiro, ou, se for mestre, crie uma nova mesa e gere um mapa.</p>
+    </div>
+
+    <div id="createTableBox"></div>
+
+    <div id="tablesList" class="center-loading">Carregando mesas…</div>
+  </div>
+
+  <!-- ===================== BOARD ===================== -->
+  <div id="boardView">
+    <div class="page-head" style="margin-bottom:14px;" id="boardTitleRow">
+      <button class="btn-link" id="backToLobbyBtn" style="margin-bottom:10px;">← Voltar às mesas</button>
+      <h1 class="h-font" id="boardTitle" style="font-size:24px;">Mesa</h1>
+      <div class="tc-meta" id="boardSceneLabel"></div>
+    </div>
+
+    <div class="board-toolbar">
+      <div class="zoom-group">
+        <button type="button" id="zoomOutBtn" title="Diminuir zoom">−</button>
+        <span class="zoom-label" id="zoomLabel">100%</span>
+        <button type="button" id="zoomInBtn" title="Aumentar zoom">+</button>
+      </div>
+      <button type="button" id="zoomFitBtn">Ajustar à tela</button>
+      <button type="button" id="zoomResetBtn">100%</button>
+      <div class="spacer"></div>
+      <span class="tc-meta board-hint">Arraste para mover · roda do mouse / pinça para zoom</span>
+      <button type="button" id="fullscreenBtn">⛶ Expandir mesa</button>
+    </div>
+
+    <div class="board-layout">
+      <div class="tools-panel" id="toolsPanel">
+        <button type="button" class="tools-panel-toggle" id="toolsPanelToggle" title="Recolher/expandir ferramentas" aria-label="Recolher/expandir ferramentas">
+          <span class="tp-toggle-icon">◂</span>
+          <span class="tp-toggle-label">Ferramentas</span>
+        </button>
+        <div class="tool-toolbar" id="toolToolbar"></div>
+      </div>
+
+      <div class="board-wrap" id="boardWrap">
+        <div class="board-surface" id="boardSurface"></div>
+        <div class="dice-toast-layer" id="diceToastLayer" aria-live="polite"></div>
+        <div class="token-inspect-panel hidden" id="tokenInspectPanel"></div>
+      </div>
+
+      <div class="board-side">
+        <button type="button" class="board-side-toggle" id="boardSideToggle" title="Recolher/expandir painel" aria-label="Recolher/expandir painel">
+          <span class="bs-toggle-icon">▸</span>
+          <span class="bs-toggle-label">Painel</span>
+        </button>
+        <div class="side-panel" id="myTokenPanel"></div>
+        <div class="side-group-label hidden" id="sideGroupCena">Cena</div>
+        <div class="side-panel hidden" id="scenePanel"></div>
+        <div class="side-panel" id="masterMapPanel"></div>
+        <div class="side-group-label" id="sideGroupJogo">Em jogo</div>
+        <div class="side-panel" id="dicePanel">
+          <h4>🎲 Dados</h4>
+
+          <div class="dice-quick-row" id="diceQuickRow"></div>
+          <div class="dice-cmd-row">
+            <input type="text" id="diceCmdInput" placeholder="ex.: d20, 2d6+3, 2#d20">
+            <label class="dice-hide-toggle" for="diceHideChk" title="Ocultar esta rolagem dos outros jogadores (só você e o Mestre veem)">
+              <input type="checkbox" id="diceHideChk">
+              <span>🙈</span>
+            </label>
+            <button class="btn small" id="diceRollBtn">🎲 Rolar</button>
+          </div>
+          <div class="dice-hide-hint" id="diceHideHint">🙈 Esta rolagem vai ficar oculta — só você e o Mestre verão o resultado.</div>
+          <div class="dice-err" id="diceErr"></div>
+
+          <div class="dice-target-group" id="diceTargetGroup">
+            <div class="dice-section-label">🎯 Aplicar em um alvo <span class="dice-section-label-opt">(opcional)</span></div>
+            <div class="dice-target-row" id="diceTargetRow">
+              <select id="diceTargetSelect" title="Alvo do ataque/cura">
+                <option value="">— sem alvo (rolagem livre) —</option>
+              </select>
+            </div>
+            <div class="dice-target-empty hidden" id="diceTargetEmpty">Nenhum token na cena ainda — coloque um em "Fichas na mesa" para poder mirar dano ou cura nele.</div>
+            <div class="dice-part-row hidden" id="dicePartRow">
+              <div class="dice-part-checks" id="diceBodyPartChecks" style="display:none"><label class="dice-part-check-item"><input type="checkbox" value="hp" checked><span>HP</span></label></div>
+              <div class="dice-action-toggle" id="diceActionToggle">
+                <label class="dice-action-opt dmg">
+                  <input type="radio" name="diceAction" value="damage" checked><span>⚔️ Dano</span>
+                </label>
+                <label class="dice-action-opt heal">
+                  <input type="radio" name="diceAction" value="heal"><span>❤️ Curar</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="dice-section-label dice-log-label" id="diceLogToggle"
+                  aria-expanded="true" aria-controls="diceLog" title="Mostrar/ocultar o histórico de rolagens">
+            <span class="dll-title">📜 Histórico</span>
+            <span class="dll-count" id="diceLogCount"></span>
+            <span class="dll-caret">▾</span>
+          </button>
+          <div class="dice-log" id="diceLog"><div class="dice-empty">Nenhuma rolagem ainda.</div></div>
+        </div>
+        <div class="side-panel" id="tokenListPanel">
+          <h4>📋 Fichas na mesa</h4>
+          <div class="tl-toolbar">
+            <input type="text" id="tokenListSearchInput" class="tl-search-input" placeholder="🔎 Buscar por nome…">
+            <select id="tokenListSortSelect" class="tl-sort-select" title="Ordenar lista">
+              <option value="default">Ordem padrão</option>
+              <option value="name">Nome (A–Z)</option>
+              <option value="hp">HP (mais ferido primeiro)</option>
+              <option value="init">Iniciativa</option>
+            </select>
+          </div>
+          <div class="tl-bulk-hp hidden" id="tokenListBulkHp">
+            <span id="tokenListBulkHpCount" class="tc-meta"></span>
+            <input type="number" min="0" id="tokenListBulkHpInput" class="hp-quick-input" placeholder="HP" title="Define esta vida (máxima e atual) em todas as 6 partes do corpo de todos os tokens marcados de uma vez">
+            <button id="tokenListBulkHpApply" title="Aplicar este HP a todos os tokens marcados com a ferramenta 🔲 Seleção múltipla">❤ Aplicar a todos marcados</button>
+          </div>
+          <div id="tokenListBody"><span class="tc-meta">Nenhum token ainda.</span></div>
+        </div>
+        <div class="side-panel" id="initiativePanel"></div>
+        <div class="side-group-label hidden" id="sideGroupMesa">Mesa</div>
+        <div class="side-panel hidden" id="presencePanel">
+          <h4>👁 Quem está na mesa</h4>
+          <div id="presenceBody"><span class="tc-meta">Ninguém além de você, por enquanto.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===================== MODAL: VER FICHA ===================== -->
+<div class="sheet-modal-overlay" id="sheetModalOverlay">
+  <div class="sheet-modal-box">
+    <button type="button" class="sheet-modal-close" id="sheetModalClose">✕</button>
+    <iframe id="sheetModalFrame" src="about:blank"></iframe>
+  </div>
+</div>
+
+<script type="module" src="js/mesa/mesa-loader.js"></script>
+</body>
+</html>

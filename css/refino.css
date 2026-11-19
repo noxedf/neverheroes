@@ -394,3 +394,7 @@ html:is([data-tema=claro],[data-tema=pergaminho]) .topbar-role.m{color:#5d5d64}
 html:is([data-tema=claro],[data-tema=pergaminho]) .topbar-toggle{background:#f3f3f1;border-color:var(--tb-line);color:#18181b}
 html:is([data-tema=claro],[data-tema=pergaminho]) .topbar .btn.mini{background:#2a2a2e;border-color:#2a2a2e;color:#fff}
 @media (max-width:860px){html:is([data-tema=claro],[data-tema=pergaminho]) .topbar-menu{background:#fff;border-bottom-color:var(--tb-line);box-shadow:0 12px 24px rgba(0,0,0,.15)}}
+
+/* ficha aberta dentro da Mesa (iframe): sem barra superior */
+html.embed #topbar{display:none}
+html.embed .shell{padding-top:.6rem}

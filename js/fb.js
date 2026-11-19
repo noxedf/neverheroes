@@ -72,6 +72,7 @@ export function renderTopbar(profile, ativa, subtitulo, extra) {
   const mestre = profile.role === "master";
   const grupos = [{ rotulo: "Mesa", links: [{ id: "fichas", texto: "Fichas", href: "fichas.html" }] }];
   if (mestre) grupos[0].links.push({ id: "master", texto: "Painel do Mestre", href: "master.html" });
+  grupos[0].links.push({ id: "mesa", texto: "Tabletop", href: "mesa.html" });
   grupos.push({ rotulo: "Mundo", links: [{ id: "conceitos", texto: "Conceitos", href: "conceitos.html" }] });
   buildTopbar({
     home: home(profile), subtitulo, ativa, grupos,
